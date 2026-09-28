@@ -1,0 +1,2 @@
+dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
+email-Eu-core-temporal_sort,986,332334,0,69459254,1,34729627,17364813

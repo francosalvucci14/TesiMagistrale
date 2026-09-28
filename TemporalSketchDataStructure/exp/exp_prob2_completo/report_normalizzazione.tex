@@ -1,0 +1,115 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  breaklines=true
+}
+
+\title{Normalizzazione Rank-Based dei Timestamp\\per l'Esperimento del Problema~2}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Problema riscontrato}
+
+L'esperimento del Problema~2 viene terminato dal kernel (OOM-kill) su tutti i dataset con timestamp in formato Unix epoch. Le cause identificate sono due, entrambe legate al fatto che il range temporale $T = t_{\max} - t_{\min}$ risulta enormemente pi\`u grande del numero di timestamp effettivamente distinti nel dataset.
+
+\subsection{Causa 1: vettore della soluzione alternativa}
+
+La classe \texttt{AlternativeSolution} alloca un vettore di $T - \mu + 1$ slot (uno per finestra temporale). Per dataset come \texttt{sx-stackoverflow}, con $T \approx 2.4 \times 10^8$ e $\mu \approx 1.2 \times 10^8$, questo vettore richiede circa 960\,MB solo per i puntatori \texttt{nullptr}.
+
+\subsection{Causa 2: enumerazione esplicita di $W(v)$}
+
+La funzione \texttt{compute\_W} enumera \emph{ogni singolo intero} nell'unione degli intervalli $[\lambda - \mu,\, \lambda]$. Se il range normalizzato \`e dell'ordine di milioni, $|W(v)|$ pu\`o raggiungere decine di milioni per un singolo nodo, e la \texttt{SketchCache} memorizza uno sketch per ciascuno di questi valori.
+
+\section{Soluzione adottata: preprocessing di normalizzazione}
+
+\textbf{Non \`e stato modificato alcun file dell'esperimento} (\texttt{esperimento.cpp}, \texttt{esperimento\_opt.cpp}, \texttt{plot\_analysis.py}, \texttt{process\_result.py}).
+
+\`E stato creato un unico file aggiuntivo, \texttt{normalize\_timestamps.cpp}, che implementa una \textbf{normalizzazione rank-based} dei timestamp come step di preprocessing.
+
+\subsection{Funzionamento}
+
+Dato un dataset con archi nel formato \texttt{u v t}:
+\begin{enumerate}
+  \item \textbf{Passata~1}: raccoglie tutti i timestamp, li ordina, e rimuove i duplicati ottenendo la sequenza $t_0 < t_1 < \cdots < t_{D-1}$ di $D$ timestamp distinti.
+  \item \textbf{Passata~2}: riscrive il file sostituendo ogni timestamp $t_i$ con il suo rango $i \in \{0, 1, \ldots, D-1\}$.
+\end{enumerate}
+
+Il file normalizzato viene salvato in \texttt{normalized\_datasets/}.
+
+\subsection{Correttezza}
+
+La normalizzazione rank-based preserva tutte le propriet\`a rilevanti per l'esperimento:
+\begin{itemize}
+  \item L'\textbf{ordinamento temporale} degli archi \`e invariante (il rango \`e una funzione monotona crescente del timestamp originale).
+  \item Le \textbf{relazioni di vicinato} $N(v, t)$ restano identiche: l'insieme dei vicini di $v$ al timestamp $t$ non dipende dal valore numerico di $t$, ma solo da quali archi hanno quel timestamp.
+  \item Gli \textbf{sketch MinHash} e i \textbf{RangeTree} producono esattamente gli stessi risultati, perch\'e dipendono unicamente dall'insieme dei vicini a ciascun timestamp, non dal valore assoluto del timestamp.
+  \item La \textbf{struttura LSH} e il \textbf{pruning $W(v)$} operano sugli stessi insiemi di finestre temporali valide.
+\end{itemize}
+
+\subsection{Effetto sulla compressione}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrc}
+\toprule
+\textbf{Dataset} & \textbf{Range originale} & \textbf{Timestamp distinti} & \textbf{Compressione} & \textbf{$\mu$ consigliato} \\
+\midrule
+aves-sparrow     & 1            & 2         & $1\times$        & 1  \\
+chess\_year      & 8            & 9         & $1\times$        & 4  \\
+CollegeMsg       & 16\,736\,181  & 58\,911    & $284\times$      & 10 \\
+email-Eu-core    & 69\,459\,254  & 207\,880   & $334\times$      & 5  \\
+soc-flickr       & 17\,017\,200  & 134        & $127\,949\times$ & 10 \\
+sx-stackoverflow & 239\,705\,551 & 52\,423\,237 & $4.6\times$    & -- \\
+wiki-talk        & 200\,483\,882 & 7\,375\,042  & $27\times$     & -- \\
+\bottomrule
+\end{tabular}
+\caption{Effetto della normalizzazione rank-based.}
+\end{table}
+
+\subsection{Calibrazione di $\mu$}
+
+Dopo la normalizzazione, $\mu$ va espresso in termini di \emph{numero di timestamp distinti consecutivi} nella finestra. La memoria occupata scala linearmente con $\mu$: su una macchina con 8\,GB di RAM (di cui $\sim$4\,GB disponibili), il limite pratico \`e circa $\mu \leq 50$ per CollegeMsg.
+
+I dataset \texttt{sx-stackoverflow} e \texttt{wiki-talk} hanno rispettivamente 52M e 7M timestamp distinti: anche dopo la normalizzazione, la \texttt{TemporalRangeForest} da sola (con 2.6M e 1.1M nodi) eccede la memoria disponibile. Per questi dataset servirebbero almeno 32\,GB di RAM.
+
+\section{File creati}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{File} & \textbf{Descrizione} \\
+\midrule
+\texttt{normalize\_timestamps.cpp} & Normalizzatore rank-based dei timestamp \\
+\texttt{normalized\_datasets/*}    & Dataset con timestamp normalizzati \\
+\texttt{normalized\_datasets/normalization\_info.csv} & Metadati della normalizzazione \\
+\texttt{run\_all.sh}               & Script bash per esecuzione completa \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Riepilogo}
+
+\begin{enumerate}
+  \item \textbf{Nessun codice dell'esperimento \`e stato modificato.}
+  \item \`E stato aggiunto un \textbf{preprocessing} che normalizza i timestamp da valori Unix epoch a ranghi consecutivi $\{0, 1, \ldots, D-1\}$.
+  \item L'esperimento viene lanciato sui file normalizzati con valori di $\mu$ calibrati sul range compresso.
+\end{enumerate}
+
+\end{document}

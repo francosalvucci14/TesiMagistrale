@@ -1,0 +1,4 @@
+dataset,algorithm,avg_query_time_us,memory_mb
+aves-sparrow,BruteForce,9.02529,0
+aves-sparrow,MiaSoluzione,0.790769,0.0286217
+aves-sparrow,Alternativa,0.732962,0.0271683

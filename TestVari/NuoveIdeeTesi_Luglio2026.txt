@@ -1,0 +1,1853 @@
+D1:
+devo fare una tesi magistrale in algoritmi e struttura dati, dove dato un grafo temporale G devo creare un'algoriutmo che mi permetta di trovare il clustering tremporale, ovvero tutte le stable communitiwes del grafo 
+come spunto, ho preso ed analizzato il seguente lavoro Mining Stable Communities in Temporal Networks by Density-Based Clustering, dove però ho riscontrato diversi problemi
+- definizione di stable core (il paper praticamente riaddatata SCAN per grafi temporali, quindi riprednde le definizione di core, cluster etc...)
+- uytilizzo di Apriori per Frequent pattern mining
+- calcolod elle similarità strutturali
+
+Io vorrei fare un algorim che non usi Apriori (ne nessun algortimo di Frequent pattern Mining), che sia comuqnue buono quanto questo del paper(che usero come baseline)
+
+non deve essere per forza deterministio, si può fare qualcosa anche con la probailità / approssimazioni varie
+
+dammi qualche idea
+
+R1:
+La direzione che stai pensando è interessante perché il lavoro che hai preso come riferimento ha effettivamente alcuni punti deboli: è un approccio abbastanza "classico" di data mining applicato a un problema temporale, ma non sfrutta fino in fondo la natura dinamica del grafo. Se vuoi fare una tesi magistrale in algoritmi e strutture dati, secondo me hai spazio per proporre qualcosa di più algoritmico e meno basato su pattern mining.
+
+Prima di tutto formalizziamo il problema.
+
+Hai un **temporal graph**:
+
+[
+G=(V,E,T)
+]
+
+dove un arco è:
+
+[
+(u,v,t)
+]
+
+cioè l'interazione tra (u) e (v) al tempo (t).
+
+Vuoi trovare delle **stable communities**, cioè insiemi di nodi:
+
+[
+C \subseteq V
+]
+
+che rimangono densamente connessi per un intervallo temporale:
+
+[
+[t_i,t_j]
+]
+
+secondo qualche misura di stabilità.
+
+Il paper che citi fa grosso modo:
+
+1. costruisce snapshot temporali
+2. trova core locali (tipo SCAN)
+3. calcola similarità
+4. usa Apriori per trovare pattern frequenti di comunità
+5. aggrega i pattern frequenti in stable communities
+
+Il problema è che Apriori è un "martello" preso dal frequent itemset mining: tratta le comunità come itemset, ma il grafo ha struttura.
+
+Ti propongo alcune idee alternative.
+
+---
+
+# Idea 1 — Stable Community Detection tramite Dynamic Core Decomposition
+
+Secondo me è la più "da tesi algoritmica".
+
+Invece di definire uno stable core con SCAN, usa una decomposizione a core dinamica.
+
+## Idea
+
+Per ogni snapshot:
+
+[
+G_t=(V,E_t)
+]
+
+calcoli il k-core:
+
+[
+C_k(G_t)
+]
+
+cioè il massimo sottografo dove:
+
+[
+deg(v)\geq k
+]
+
+Poi osservi come il core evolve nel tempo.
+
+Una community stabile è un gruppo di nodi che:
+
+* appartiene allo stesso k-core
+* per molti snapshot consecutivi
+* con poche variazioni
+
+Esempio:
+
+```
+t1:
+
+A-B-C-D
+ \ | /
+   E
+
+k-core = {A,B,C,D,E}
+
+
+t2:
+
+A-B-C-D
+ \ | /
+   E
+
+
+stesso core
+
+
+t3:
+
+A-B-C
+
+D sparisce
+
+
+stabilità diminuisce
+```
+
+Definisci:
+
+[
+Stability(C)=
+\frac{\sum_t |C_t \cap C|}
+{\sum_t |C_t|}
+]
+
+oppure:
+
+[
+J(C_t,C_{t+1})
+==============
+
+\frac{|C_t\cap C_{t+1}|}
+{|C_t\cup C_{t+1}|}
+]
+
+e cerchi sequenze con alto Jaccard.
+
+---
+
+## Algoritmo
+
+Puoi fare:
+
+```
+for each timestamp t:
+
+    compute k-core decomposition
+
+    extract candidate communities
+
+
+for consecutive snapshots:
+
+    match communities using Jaccard
+
+
+merge communities with high persistence
+```
+
+Complessità:
+
+Core decomposition:
+
+[
+O(|E|)
+]
+
+per snapshot.
+
+Molto più elegante di Apriori.
+
+---
+
+## Punto forte
+
+Non hai bisogno di:
+
+* similarità strutturale
+* Apriori
+* frequent patterns
+
+Hai una definizione matematica pulita.
+
+---
+
+# Idea 2 — Community Tracking con Random Walk / Markov Chain
+
+Questa è più probabilistica.
+
+L'idea:
+
+Una community stabile è un insieme di nodi dove un random walker tende a rimanere.
+
+Per ogni snapshot:
+
+costruisci matrice:
+
+[
+P_t
+]
+
+di transizione.
+
+Una community ha alta stabilità se:
+
+[
+P(X_{t+\Delta}\in C | X_t\in C)
+]
+
+è alta.
+
+Quindi:
+
+[
+Stability(C)=
+\Pr(v_t\in C,v_{t+1}\in C)
+]
+
+Puoi usare:
+
+* Personalized PageRank
+* Markov Stability
+* Infomap style
+
+Pipeline:
+
+```
+temporal graph
+
+       |
+       v
+
+random walk embedding
+
+       |
+       v
+
+clustering
+
+       |
+       v
+
+track clusters over time
+```
+
+Vantaggio:
+
+non devi definire un "stable core".
+
+La stabilità emerge dalla dinamica.
+
+---
+
+# Idea 3 — Streaming Temporal Community Detection
+
+Questa sarebbe molto interessante per una magistrale.
+
+Invece di vedere tutto il grafo offline:
+
+arrivano gli archi:
+
+```
+(u,v,t)
+(u,w,t+1)
+(a,b,t+2)
+...
+```
+
+e aggiorni le community.
+
+Mantieni:
+
+* densità
+* degree
+* similarity
+* probabilità di appartenenza
+
+Tipo:
+
+```
+Community C:
+
+nodes:
+A B C D
+
+density:
+0.82
+
+last update:
+t=100
+
+stability:
+0.91
+```
+
+Quando arriva un nuovo arco:
+
+```
+(A,E,101)
+```
+
+aggiorni solo le community coinvolte.
+
+Questo evita completamente Apriori.
+
+---
+
+# Idea 4 — Approximate Stable Communities con Sketching
+
+Questa è più "algoritmi e strutture dati".
+
+Problema:
+
+calcolare tutte le similarità strutturali è costoso.
+
+Il paper probabilmente fa:
+
+[
+sim(u,v)
+========
+
+\frac{|N(u)\cap N(v)|}
+{|N(u)\cup N(v)|}
+]
+
+Il costo è enorme.
+
+Puoi sostituirlo con:
+
+## MinHash
+
+Rappresenti ogni nodo con:
+
+[
+signature(v)
+]
+
+e approssimi:
+
+[
+Jaccard(N(u),N(v))
+]
+
+Complessità:
+
+da:
+
+[
+O(n^2)
+]
+
+a:
+
+[
+O(nk)
+]
+
+Poi fai clustering.
+
+Schema:
+
+```
+Temporal graph
+
+      |
+      v
+
+MinHash signatures
+
+      |
+      v
+
+LSH buckets
+
+      |
+      v
+
+community candidates
+
+      |
+      v
+
+stability filtering
+```
+
+Questa è una tesi molto buona perché puoi confrontare:
+
+* algoritmo esatto del paper
+* algoritmo approssimato tuo
+
+con:
+
+* tempo
+* memoria
+* qualità
+
+---
+
+# Idea 5 — Spectral Temporal Clustering
+
+Molto teorica.
+
+Costruisci una matrice:
+
+[
+A=
+\begin{bmatrix}
+A_1 & A_{12}\
+A_{21}&A_2
+\end{bmatrix}
+]
+
+dove hai:
+
+* spazio
+* tempo
+
+Poi fai clustering sugli autovettori.
+
+Esempio:
+
+[
+L_t=D_t-A_t
+]
+
+Laplaciano temporale.
+
+Community stabili = vettori propri persistenti.
+
+Puoi usare:
+
+* Dynamic Laplacian
+* Temporal spectral clustering
+
+Molto elegante ma probabilmente più matematica.
+
+---
+
+# Idea 6 — Evolutionary Algorithm / Genetic Approach
+
+Visto che hai detto "non deve essere deterministico":
+
+puoi modellare una community come individuo.
+
+Fitness:
+
+[
+fitness(C)=
+density(C)
+\times
+persistence(C)
+\times
+cohesion(C)
+]
+
+E fai:
+
+* crossover
+* mutation
+* selection
+
+Esempio:
+
+Community A:
+
+```
+{1,2,3,4}
+```
+
+mutazione:
+
+```
+aggiungi 5
+```
+
+se migliora:
+
+```
+{1,2,3,4,5}
+```
+
+rimane.
+
+Potrebbe essere interessante, ma meno "algoritmi puri".
+
+---
+
+# Secondo me le migliori idee per una magistrale
+
+Io farei una di queste:
+
+## Opzione A (più algoritmica)
+
+### Dynamic k-core + community persistence
+
+Titolo possibile:
+
+> "Mining Stable Communities in Temporal Networks through Dynamic Core Evolution"
+
+Confronto:
+
+baseline:
+
+* Mining Stable Communities by Density-Based Clustering
+
+tuo:
+
+* dynamic core tracking
+
+---
+
+## Opzione B (più moderna)
+
+### Approximate stable community detection using MinHash + LSH
+
+Titolo:
+
+> "Efficient Approximate Mining of Stable Communities in Temporal Networks"
+
+Contributo:
+
+* niente Apriori
+* niente similarity quadratica
+* scalabilità
+
+---
+
+## Opzione C (più ricerca)
+
+### Probabilistic temporal community detection
+
+Titolo:
+
+> "A Probabilistic Framework for Stable Community Discovery in Temporal Graphs"
+
+Usi:
+
+* random walks
+* Markov stability
+* probabilistic persistence
+
+---
+
+Personalmente, per una **tesi magistrale in Algoritmi e Strutture Dati**, eviterei genetic algorithms e clustering troppo "black box". La strada più forte secondo me è:
+
+**Dynamic k-core + MinHash/LSH per similarità + community tracking temporale**
+
+perché puoi dire:
+
+> "Il mio algoritmo sostituisce Apriori con un meccanismo strutturale basato sull'evoluzione del grafo e riduce il costo della similarità mediante tecniche probabilistiche."
+
+È una modifica abbastanza sostanziale rispetto al paper, ma rimane confrontabile sperimentalmente.
+
+D2:ùsi mi interessano le 3 opzioni che mi hai dato, voglio avere un quadro più specifico di tutte e 3
+
+R2:
+Perfetto. Ti faccio un quadro più approfondito delle tre direzioni, ragionando proprio in ottica **tesi magistrale in algoritmi e strutture dati**: problema, idea algoritmica, formalizzazione, possibili contributi rispetto al paper baseline, difficoltà e valutazione sperimentale.
+
+---
+
+# Opzione A — Dynamic k-core + Community Persistence
+
+## Idea generale
+
+Questa è probabilmente la più vicina al problema originale, ma cambia completamente il paradigma.
+
+Il paper che hai analizzato parte da una filosofia:
+
+> "Trovo comunità dense in ogni istante e poi cerco quali pattern di comunità si ripetono frequentemente"
+
+Tu invece dici:
+
+> "Una comunità stabile è una struttura del grafo che sopravvive nel tempo"
+
+Quindi non cerchi pattern frequenti, ma **entità dinamiche persistenti**.
+
+---
+
+# 1. Definizione del problema
+
+Hai un temporal graph:
+
+[
+G=(V,E,T)
+]
+
+Ogni timestamp genera uno snapshot:
+
+[
+G_t=(V,E_t)
+]
+
+Su ogni snapshot calcoli una decomposizione k-core.
+
+Un k-core è:
+
+[
+C_k={v\in V : deg_{C_k}(v)\geq k}
+]
+
+Esempio:
+
+```
+Snapshot t1
+
+
+     A
+   / | \
+  B--C--D
+      |
+      E
+
+
+3-core:
+
+{A,B,C,D}
+```
+
+Snapshot successivo:
+
+```
+     A
+   / | \
+  B--C
+      |
+      E
+
+
+3-core:
+
+{A,B,C}
+```
+
+La comunità non sparisce, evolve.
+
+---
+
+# 2. Nuova definizione di stable community
+
+Puoi definire:
+
+Una comunità temporale:
+
+[
+SC=(C,[t_i,t_j])
+]
+
+dove:
+
+* C è un insieme di nodi
+* sopravvive nell'intervallo temporale
+
+Definisci:
+
+## Persistence
+
+Quanto tempo rimane:
+
+[
+P(C)=
+\frac{|[t_i,t_j]|}{|T|}
+]
+
+---
+
+## Structural stability
+
+Quanto cambia:
+
+[
+S(C)=
+\frac{1}{T}
+\sum_t
+J(C_t,C_{t+1})
+]
+
+dove:
+
+[
+J(A,B)=
+\frac{|A\cap B|}
+{|A\cup B|}
+]
+
+---
+
+## Community score
+
+Esempio:
+
+[
+Score(C)=
+\alpha P(C)
++
+(1-\alpha)S(C)
+]
+
+---
+
+# 3. Algoritmo possibile
+
+## Step 1
+
+Calcolo k-core dinamico.
+
+Naive:
+
+```
+for every t:
+
+    k-core decomposition
+```
+
+Costo:
+
+[
+O(T|E|)
+]
+
+Ma puoi migliorarlo.
+
+---
+
+## Step 2
+
+Community matching.
+
+Tra due timestamp:
+
+hai:
+
+```
+t:
+
+C1={1,2,3,4}
+
+t+1:
+
+D1={1,2,3,5}
+```
+
+Calcoli:
+
+[
+J(C1,D1)
+]
+
+Se:
+
+[
+J>0.7
+]
+
+allora:
+
+```
+C1 evolve in D1
+```
+
+---
+
+## Step 3
+
+Costruisci un grafo di evoluzione:
+
+```
+t1       t2       t3
+
+ A ----> A ----> A
+
+ B ----> B
+
+ C ----> C ----> C ----> C
+```
+
+Le catene più lunghe sono stable communities.
+
+---
+
+# 4. Contributo rispetto al paper
+
+Il paper:
+
+```
+snapshot
+ |
+SCAN
+ |
+Apriori
+ |
+frequent patterns
+```
+
+Tu:
+
+```
+snapshot
+ |
+dynamic core
+ |
+community evolution graph
+ |
+persistent communities
+```
+
+Vantaggi:
+
+* niente Apriori
+* niente mining combinatorio
+* definizione più naturale
+
+---
+
+# 5. Difficoltà
+
+Media.
+
+La parte interessante è:
+
+* matching efficiente delle community
+* aggiornamento incrementale del core
+
+---
+
+# 6. Valutazione
+
+Dataset:
+
+* email networks
+* social networks
+* contact networks
+
+Metriche:
+
+Qualità:
+
+* modularity
+* conductance
+* density
+
+Stabilità:
+
+* lifetime
+* Jaccard persistence
+
+Efficienza:
+
+* runtime
+* memoria
+
+---
+
+---
+
+# Opzione B — Approximate Stable Communities con MinHash + LSH
+
+Questa è più orientata ad algoritmi scalabili.
+
+L'idea:
+
+Il problema principale del paper è la similarità strutturale.
+
+Probabilmente calcola:
+
+[
+sim(u,v)
+========
+
+\frac{|N(u)\cap N(v)|}
+{|N(u)\cup N(v)|}
+]
+
+cioè Jaccard.
+
+Il problema:
+
+se hai:
+
+[
+|V|=1M
+]
+
+hai:
+
+[
+O(n^2)
+]
+
+confronti.
+
+---
+
+# 1. Idea
+
+Usare MinHash.
+
+Ogni nodo:
+
+```
+A:
+
+neighbors:
+
+{2,5,7,9,20}
+```
+
+diventa una signature:
+
+```
+A:
+
+[13,98,44,72,...]
+```
+
+La proprietà:
+
+[
+P(h(A)=h(B))
+============
+
+J(A,B)
+]
+
+quindi:
+
+la probabilità che due signature siano uguali è la similarità.
+
+---
+
+# 2. Locality Sensitive Hashing
+
+MinHash da sola non basta.
+
+Usi LSH.
+
+Esempio:
+
+```
+signature:
+
+[3,8,2,7,9,1]
+
+
+divide:
+
+band 1:
+
+3,8
+
+
+band 2:
+
+2,7
+
+
+band 3:
+
+9,1
+```
+
+Se due nodi finiscono nello stesso bucket:
+
+sono candidati.
+
+Quindi:
+
+invece di:
+
+```
+A confronta B,C,D,E,F...
+```
+
+fai:
+
+```
+A confronta solo:
+
+B,C
+```
+
+---
+
+# 3. Pipeline
+
+```
+Temporal graph
+
+       |
+       v
+
+Neighborhood extraction
+
+       |
+       v
+
+MinHash signatures
+
+       |
+       v
+
+LSH candidate pairs
+
+       |
+       v
+
+Community clustering
+
+       |
+       v
+
+Temporal stability filtering
+```
+
+---
+
+# 4. Stable community
+
+Puoi definire:
+
+Un nodo appartiene a una community se:
+
+[
+sim(u,C)>threshold
+]
+
+La community sopravvive se:
+
+[
+J(C_t,C_{t+1})>\theta
+]
+
+---
+
+# 5. Contributo scientifico
+
+La tua frase sarebbe:
+
+> "We replace exact structural similarity computation with a probabilistic approximation based on MinHash and LSH, obtaining subquadratic complexity."
+
+---
+
+# 6. Complessità
+
+Prima:
+
+[
+O(|V|^2)
+]
+
+Dopo:
+
+circa:
+
+[
+O(|V|k)
+]
+
+dove:
+
+k = numero hash.
+
+---
+
+# 7. Difficoltà
+
+Media-alta.
+
+Devi studiare:
+
+* probabilistic guarantees
+* false positives
+* false negatives
+
+Però è molto pubblicabile come idea.
+
+---
+
+# Opzione C — Probabilistic Temporal Community Detection
+
+Questa è la più "research".
+
+Cambia completamente prospettiva.
+
+---
+
+# Idea
+
+Non chiederti:
+
+> "Quali nodi sono insieme?"
+
+ma:
+
+> "Qual è la probabilità che due nodi appartengano alla stessa comunità nel tempo?"
+
+---
+
+# 1. Random walk
+
+Un grafo diventa una catena di Markov.
+
+Matrice:
+
+[
+P=D^{-1}A
+]
+
+dove:
+
+[
+P_{ij}
+]
+
+è la probabilità di andare da i a j.
+
+---
+
+# 2. Stability di Markov
+
+Una community è buona se:
+
+un random walker che entra rimane dentro.
+
+Formalmente:
+
+[
+r(t)=
+p^T P^t
+]
+
+dove:
+
+p è la distribuzione iniziale.
+
+La stabilità:
+
+[
+r(C,t)
+======
+
+Pr(X_t\in C|X_0\in C)
+]
+
+---
+
+# 3. Temporalizzazione
+
+Hai:
+
+[
+P_1,P_2,...,P_T
+]
+
+quindi:
+
+```
+time 1:
+
+random walk
+
+
+time 2:
+
+random walk
+
+
+time 3:
+
+random walk
+```
+
+Una community stabile ha:
+
+[
+C_1\approx C_2\approx C_3
+]
+
+---
+
+# 4. Algoritmo possibile
+
+Per ogni snapshot:
+
+```
+compute Markov matrix
+
+↓
+
+compute embeddings
+
+↓
+
+cluster nodes
+
+↓
+
+track clusters
+```
+
+Puoi usare:
+
+* spectral clustering
+* Leiden
+* Louvain
+* hierarchical clustering
+
+---
+
+# 5. Vantaggi
+
+Non devi definire:
+
+* core
+* density
+* similarity
+
+La stabilità è emergente.
+
+---
+
+# 6. Svantaggi
+
+È più difficile giustificare:
+
+"perché questa è una community?"
+
+perché diventa una proprietà probabilistica.
+
+---
+
+# Confronto diretto
+
+|                            | Dynamic Core | MinHash+LSH | Probabilistico |
+| -------------------------- | ------------ | ----------- | -------------- |
+| Vicino al paper            | ⭐⭐⭐⭐⭐        | ⭐⭐⭐⭐        | ⭐⭐             |
+| Algoritmi e strutture dati | ⭐⭐⭐⭐⭐        | ⭐⭐⭐⭐⭐       | ⭐⭐⭐            |
+| Originalità                | ⭐⭐⭐          | ⭐⭐⭐⭐⭐       | ⭐⭐⭐⭐⭐          |
+| Difficoltà                 | Media        | Medio-alta  | Alta           |
+| Implementazione            | facile       | media       | difficile      |
+| Possibilità pubblicazione  | buona        | molto buona | buona          |
+
+---
+
+# La mia valutazione per una magistrale
+
+Se vuoi una tesi **solida e fattibile**:
+
+## Scelta 1
+
+**Dynamic k-core + temporal community tracking**
+
+perché puoi completarla bene.
+
+---
+
+Se vuoi una tesi più "algoritmica":
+
+## Scelta 2
+
+**MinHash + LSH + temporal clustering**
+
+secondo me è quella con il contributo più chiaro.
+
+Potresti scrivere:
+
+> "Il limite principale degli approcci density-based è il costo della similarità strutturale. Proponiamo una tecnica probabilistica che mantiene la qualità del clustering riducendo la complessità."
+
+---
+
+Se vuoi una tesi più da PhD:
+
+## Scelta 3
+
+**Markov stability temporal clustering**
+
+---
+
+Una quarta strada che secondo me potrebbe essere ancora più forte sarebbe una combinazione:
+
+**Dynamic k-core come generatore di candidati + MinHash/LSH per il matching temporale**
+
+cioè:
+
+```
+Temporal Graph
+
+      |
+      v
+
+Dynamic k-core
+
+      |
+      v
+
+Candidate communities
+
+      |
+      v
+
+MinHash similarity
+
+      |
+      v
+
+Stable communities
+```
+
+Questa secondo me sarebbe una proposta molto competitiva rispetto al paper baseline perché sostituisce sia **SCAN** sia **Apriori** con componenti più moderne.
+
+D3:
+mi faresti l'implementazione python dell'opzione A
+
+R3:
+Sì. Ti propongo una **prima implementazione completa dell'Opzione A: Dynamic k-core + Community Persistence**.
+
+L'obiettivo dell'algoritmo sarà:
+
+1. Ricevere un **temporal graph** come sequenza di snapshot:
+   [
+   G_1,G_2,...,G_T
+   ]
+
+2. Per ogni snapshot:
+
+   * calcolare i k-core
+   * estrarre le comunità candidate
+
+3. Tra snapshot consecutivi:
+
+   * confrontare le comunità con Jaccard similarity
+   * tracciare l'evoluzione delle comunità
+
+4. Restituire:
+
+   * stable communities
+   * intervallo temporale
+   * persistenza
+   * stabilità strutturale
+
+La struttura è questa:
+
+```
+Temporal Graph
+
+      |
+      v
+
+Snapshot k-core decomposition
+
+      |
+      v
+
+Community matching
+
+      |
+      v
+
+Evolution graph
+
+      |
+      v
+
+Stable communities
+```
+
+---
+
+## Dipendenze
+
+Usiamo:
+
+* `networkx` per i grafi
+* `dataclasses` per rappresentare le comunità
+
+Installazione:
+
+```bash
+pip install networkx
+```
+
+---
+
+# Codice
+
+```python
+import networkx as nx
+from dataclasses import dataclass, field
+from typing import List, Set
+
+
+# -------------------------------------
+# Rappresentazione di una community
+# -------------------------------------
+
+@dataclass
+class TemporalCommunity:
+    id: int
+    nodes: Set
+    start: int
+    end: int
+
+    history: List[Set] = field(default_factory=list)
+
+    def lifetime(self):
+        return self.end - self.start + 1
+
+
+
+# -------------------------------------
+# Jaccard similarity
+# -------------------------------------
+
+def jaccard(A, B):
+
+    if len(A) == 0 and len(B) == 0:
+        return 1.0
+
+    return len(A & B) / len(A | B)
+
+
+
+# -------------------------------------
+# Estrazione k-core communities
+# -------------------------------------
+
+def extract_kcore_communities(G, k):
+
+    """
+    Calcola il k-core e restituisce
+    le componenti connesse.
+
+    Ogni componente è una community.
+    """
+
+    core = nx.k_core(G, k=k)
+
+    communities = []
+
+    for component in nx.connected_components(core):
+        communities.append(set(component))
+
+    return communities
+
+
+
+# -------------------------------------
+# Dynamic Core Tracker
+# -------------------------------------
+
+class DynamicKCoreDetector:
+
+
+    def __init__(
+            self,
+            k=2,
+            similarity_threshold=0.5):
+
+        self.k = k
+        self.threshold = similarity_threshold
+
+        self.next_id = 0
+
+
+
+    def detect(self, snapshots):
+
+        """
+        snapshots:
+            lista di grafi networkx
+
+        esempio:
+
+        [
+          G1,
+          G2,
+          G3
+        ]
+
+        """
+
+        active = []
+
+        finished = []
+
+
+
+        for t, G in enumerate(snapshots):
+
+
+            print(f"Processing snapshot {t}")
+
+
+            communities = extract_kcore_communities(
+                G,
+                self.k
+            )
+
+
+            matched = set()
+
+
+            new_active = []
+
+
+
+            # confronto con comunità precedenti
+
+            for old in active:
+
+
+                best_match = None
+                best_score = 0
+
+
+
+                for idx,new_nodes in enumerate(communities):
+
+                    if idx in matched:
+                        continue
+
+
+                    score = jaccard(
+                        old.nodes,
+                        new_nodes
+                    )
+
+
+                    if score > best_score:
+                        best_score = score
+                        best_match = idx
+
+
+
+                if (
+                    best_match is not None
+                    and best_score >= self.threshold
+                ):
+
+                    nodes = communities[best_match]
+
+
+                    old.nodes = nodes
+                    old.end = t
+                    old.history.append(nodes)
+
+
+                    matched.add(best_match)
+
+                    new_active.append(old)
+
+
+                else:
+
+                    # community terminata
+
+                    finished.append(old)
+
+
+
+            # nuove comunità
+
+            for idx,nodes in enumerate(communities):
+
+                if idx not in matched:
+
+                    c = TemporalCommunity(
+                        id=self.next_id,
+                        nodes=nodes,
+                        start=t,
+                        end=t,
+                        history=[nodes]
+                    )
+
+                    self.next_id += 1
+
+
+                    new_active.append(c)
+
+
+
+            active = new_active
+
+
+
+        # aggiungo quelle ancora vive
+
+        finished.extend(active)
+
+
+        return finished
+
+
+
+# -------------------------------------
+# Filtering stable communities
+# -------------------------------------
+
+def stable_filter(
+        communities,
+        min_lifetime=3):
+
+    return [
+        c for c in communities
+        if c.lifetime() >= min_lifetime
+    ]
+
+
+
+# -------------------------------------
+# TEST
+# -------------------------------------
+
+
+if __name__ == "__main__":
+
+
+    # snapshot 0
+
+    G1 = nx.Graph()
+
+    G1.add_edges_from([
+        ("A","B"),
+        ("B","C"),
+        ("C","A"),
+        ("C","D")
+    ])
+
+
+
+    # snapshot 1
+
+    G2 = nx.Graph()
+
+    G2.add_edges_from([
+        ("A","B"),
+        ("B","C"),
+        ("C","A"),
+        ("C","D"),
+        ("D","E")
+    ])
+
+
+
+    # snapshot 2
+
+    G3 = nx.Graph()
+
+    G3.add_edges_from([
+        ("A","B"),
+        ("B","C"),
+        ("C","A"),
+        ("D","E")
+    ])
+
+
+
+    snapshots=[
+        G1,
+        G2,
+        G3
+    ]
+
+
+
+    detector = DynamicKCoreDetector(
+        k=2,
+        similarity_threshold=0.4
+    )
+
+
+    communities = detector.detect(
+        snapshots
+    )
+
+
+    stable = stable_filter(
+        communities,
+        min_lifetime=2
+    )
+
+
+    print("\nStable communities:")
+
+
+    for c in stable:
+
+        print(
+            f"""
+Community {c.id}
+
+Nodes:
+{c.nodes}
+
+Interval:
+[{c.start},{c.end}]
+
+Lifetime:
+{c.lifetime()}
+"""
+        )
+```
+
+---
+
+# Output atteso (esempio)
+
+```
+Processing snapshot 0
+Processing snapshot 1
+Processing snapshot 2
+
+
+Stable communities:
+
+Community 0
+
+Nodes:
+{'A','B','C'}
+
+Interval:
+[0,2]
+
+Lifetime:
+3
+```
+
+---
+
+# Però: questa è una versione "baseline"
+
+Per una tesi la migliorerei in 4 punti.
+
+## 1. Dynamic k-core vero
+
+Questo ricalcola tutto:
+
+```python
+nx.k_core(G)
+```
+
+ogni snapshot.
+
+In una tesi puoi proporre:
+
+* aggiornamento incrementale del core
+* solo nodi coinvolti negli edge update
+
+Complessità:
+
+da:
+
+[
+O(T(|V|+|E|))
+]
+
+a:
+
+[
+O(\Delta E)
+]
+
+dove (\Delta E) sono gli archi modificati.
+
+---
+
+## 2. Community matching più intelligente
+
+Ora uso:
+
+[
+Jaccard(C_t,C_{t+1})
+]
+
+ma puoi sostituire con:
+
+[
+score=
+\alpha Jaccard
++
+\beta Density
++
+\gamma CoreLevel
+]
+
+---
+
+## 3. Evolution graph esplicito
+
+Creerei un DAG:
+
+```
+C0(t0)
+ |
+C0(t1)
+ |
+C0(t2)
+
+
+C1(t1)
+ |
+C1(t2)
+```
+
+e poi fai:
+
+* longest path
+* persistent components
+
+---
+
+## 4. Gestione split/merge
+
+Ora supporta solo:
+
+```
+A ---> A
+```
+
+ma nei grafi reali hai:
+
+split:
+
+```
+A
+|
++--B
++--C
+```
+
+merge:
+
+```
+A
+ \
+  C
+ /
+B
+```
+
+Questo sarebbe un contributo interessante.
+
+---
+
+Come punto di partenza per una tesi, questa implementazione ti dà già una base sperimentale confrontabile con il paper. Il vero contributo potrebbe essere trasformarla da **community tracking greedy** a **dynamic stable-core evolution algorithm** con gestione di split/merge e aggiornamento incrementale.

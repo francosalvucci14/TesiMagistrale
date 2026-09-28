@@ -1,0 +1,91 @@
+\section{Esperimento: Valutazione delle Prestazioni al Variare dell'Ampiezza della Finestra Temporale}
+\label{sec:esperimento_variazione_mu}
+
+\subsection{Obiettivo dell'Esperimento}
+L'esperimento implementato nel file \texttt{experiments3.cpp} ha lo scopo di analizzare empiricamente l'efficienza temporale della struttura dati basata su albero temporale (\textbf{Temporal Range Forest / Range Tree}) rispetto a una procedura di ricerca sequenziale non indicizzata (\textbf{Baseline Naive}).
+In particolare, l'esperimento valuta il tempo medio di risposta a una query di vicinato temporale con sketch MinHash, osservando come variano le prestazioni al crescere dell'ampiezza della finestra temporale $\mu$.
+
+Dato un nodo target $v \in V$ e un intervallo temporale $I = [t_{\text{start}}, t_{\text{end}}]$ di ampiezza $\mu = t_{\text{end}} - t_{\text{start}} + 1$, l'obiettivo di entrambe le metodologie è calcolare la signature MinHash $S(v, I) = \operatorname{Sketch}(N^I(v))$ associata al vicinato temporale:
+\[
+N^I(v) = \{ u \in V \mid \exists t' \in I : (u, v, t') \in E \}.
+\]
+
+\subsection{Funzionamento e Metodologia}
+L'esperimento si articola in quattro fasi sequenziali:
+
+\begin{enumerate}
+    \item \textbf{Generazione del Grafo Temporale Sintetico:}
+    Viene generato uno scenario di test ad alta densità temporale mediante la funzione \texttt{generate\_synthetic\_graph}. I parametri utilizzati sono:
+    \begin{itemize}
+        \item Numero totale di vertici: $|V| = 70\,000$;
+        \item Grado medio: $\bar{d} = 350$, per un volume complessivo di archi temporali pari a $|E| = |V| \cdot \bar{d} = 24\,500\,000$;
+        \item Orizzonte temporale discreto: $\mathcal{T} = \{1, \ldots, T_{\max}\}$, con $T_{\max} = 5481$.
+    \end{itemize}
+    Gli archi $(u, v, t)$ vengono generati selezionando casualmente coppie di nodi distinti $u \neq v$ e assegnando un timestamp uniforme $t \in [1, T_{\max}]$. Viene infine estratto casualmente un nodo query target $v \in V$.
+
+    \item \textbf{Costruzione della Struttura Pre-indicizzata (TRF):}
+    Viene istanziato \emph{una sola volta all'inizio} il \texttt{RangeTree} associato al nodo target $v$:
+    \begin{itemize}
+        \item Per ogni istante attivo $t \in \Lambda(v)$, viene calcolato lo sketch foglia MinHash con dimensione fissata a $k = 128$ permutazioni.
+        \item I nodi interni memorizzano l'unione dei vicinati dei sottoalberi tramite l'operazione di \texttt{merge} tra sketch MinHash (prendendo il minimo componente per componente, con costo $O(k)$).
+        \item Il tempo di costruzione viene ammortizzato una tantum prima dell'avvio della fase di interrogazione.
+    \end{itemize}
+
+    \item \textbf{Campionamento Dinamico delle Query per Differenti Ampiezze $\mu$:}
+    L'esperimento itera su una sequenza di ampiezze temporali crescenti:
+    \[
+    \mu \in \{50, 100, 200, 500, 1000, 2000, 5000\}.
+    \]
+    Per ciascun valore di $\mu \le T_{\max}$:
+    \begin{itemize}
+        \item Si calcola il numero teorico massimo di intervalli ammissibili:
+        \[
+        \text{max\_possible\_intervals} = T_{\max} - \mu + 1.
+        \]
+        \item Si generano $Q = 100$ query campionando uniformemente $t_{\text{start}} \in [1, T_{\max} - \mu + 1]$ e fissando $t_{\text{end}} = t_{\text{start}} + \mu - 1$.
+    \end{itemize}
+
+    \item \textbf{Confronto Algoritmico a Due Vie:}
+    Per ogni batch di $Q$ query, vengono misurati i tempi di esecuzione ad alta risoluzione (\texttt{std::chrono::high\_resolution\_clock}):
+    \begin{itemize}
+        \item \textbf{Temporal Range Forest (\texttt{tree->query}):} Risolve la query identificando i nodi canonici dell'albero che partizionano l'intervallo $[t_{\text{start}}, t_{\text{end}}]$ ed eseguendo il \texttt{merge} dei rispettivi sketch. Il costo asintotico atteso è:
+        \[
+        O(k \log |\Lambda(v)|).
+        \]
+        \item \textbf{Approccio Naive (\texttt{naive\_query}):} Esegue una scansione lineare dell'intero insieme degli archi $E$, filtra quelli incidenti su $v$ con timestamp $t \in [t_{\text{start}}, t_{\text{end}}]$ e ricalcola da zero la signature MinHash (costo $O(|E| + k \cdot |N^I(v)|)$).
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Descrizione dell'Output}
+L'esperimento produce due flussi di output:
+
+\subsubsection{1. Output su File CSV (\texttt{results\_interval2.csv})}
+I dati numerici aggregati vengono esportati in formato tabellare CSV per permettere la generazione di grafici e l'analisi statistica. La struttura delle colonne è la seguente:
+\begin{itemize}
+    \item \textbf{\texttt{mu}}: ampiezza della finestra temporale $\mu$ considerata.
+    \item \textbf{\texttt{max\_possible\_intervals}}: numero massimo di finestre distinte di durata $\mu$ collocabili nell'orizzonte temporale $[1, T_{\max}]$, calcolato come $T_{\max} - \mu + 1$.
+    \item \textbf{\texttt{trf\_time\_ns}}: tempo medio di esecuzione per query impiegato dalla Temporal Range Forest, espresso in nanosecondi (calcolato come media su $Q = 100$ istanze).
+    \item \textbf{\texttt{naive\_time\_ns}}: tempo medio per query impiegato dall'algoritmo Naive per ricostruire lo sketch da zero, espresso in nanosecondi.
+\end{itemize}
+
+\subsubsection{2. Log a Terminale (Console)}
+Durante l'esecuzione, il programma stampa a video:
+\begin{itemize}
+    \item La conferma della generazione del grafo e l'identificativo del nodo target selezionato casualmente;
+    \item Lo stato di completamento della costruzione una tantum del \texttt{RangeTree};
+    \item Una riga riassuntiva per ciascun valore di $\mu$ che riporta il confronto diretto tra il tempo della TRF e il tempo della baseline naive.
+\end{itemize}
+
+\subsection{Interpretazione Teorica dei Risultati}
+L'analisi empirica evidenzia due comportamenti strutturali fondamentali:
+\begin{enumerate}
+    \item \textbf{Scalabilità della TRF rispetto all'ampiezza dell'intervallo:}
+    Mentre la baseline naive subisce un incremento del tempo di elaborazione all'aumentare di $\mu$ (poiché una finestra più ampia intercetta un numero maggiore di eventi temporali da scansionare ed inserire nello sketch), la Temporal Range Forest mantiene tempi di risposta logaritmici $O(k \log |\Lambda(v)|)$ stabili, poiché l'intervallo viene decomposto in al più $O(\log |\Lambda(v)|)$ nodi canonici indipendentemente dalla durata assoluta di $\mu$.
+    
+    \item \textbf{Fattore di Accelerazione (Speedup):}
+    Il rapporto
+    \[
+    \text{Speedup} = \frac{\text{naive\_time\_ns}}{\text{trf\_time\_ns}}
+    \]
+    quantifica il beneficio dell'indicizzazione gerarchica, dimostrando ordini di grandezza di vantaggio rispetto alla scansione esaustiva della timeline, specialmente per finestre temporali ampie dove il ricalcolo da zero risulterebbe proibitivo.
+\end{enumerate}

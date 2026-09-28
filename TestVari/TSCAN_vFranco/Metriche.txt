@@ -1,0 +1,13 @@
+Metriche
+
+- AS (prima metrica) : \sum_{C_i\in C}[\frac{|{(u,v,t)\in\mathcal E:u\in C_i, v\in C_i}|}{|{(u,v,t)\in\mathcal E:u\in C_i, v\not\in C_i}|}]/|C|
+ - AD (seconda) \sum_{C_i\in C}[\frac{\sum_{v_j\in C_i}d_{C_i}(v_j)}{|C_i|}]/|C| 
+- AC (terza) \sum_{C_i\in C}\max_{S\subseteq C_i}\phi(S) 
+- ACC (quarta ed ultima) \sum_{C_i\in C}[\sum_{v_j\in C_i}\frac{num_edge(N(v_j,C_i))}{d_{C_i}(v_j)}]/|C| dove \mathcal E = inseme di archi temproali d_{C_i}(v_j) numero di archi temporali associati al nodo v_j in C_i \phi(S) conduittanza di S misurata nel sottografo temporale indotto da S num_edge(N(v_j,C_i)) numero di archi temporali in C_i i cui endpoint sono entrambi vicini di v_j
+
+spiegazioen metriche
+
+- Average Separability: misura quanto una comunità è ben separat dal resto della rete 
+- Average Densioty: misura la frazione di archi temporali che appaiono fra i nodi della counità
+ - Average Cohesiveness: caratteruizza la struttura interna della comunità 
+- Average Clustering Coefficient: basata sulla promessa che le comunitò sono manifestazioni dell' inhomogeneus distributions (non so tradurre) locale degli archi

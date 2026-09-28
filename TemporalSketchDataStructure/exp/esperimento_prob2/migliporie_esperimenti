@@ -1,0 +1,9 @@
+plot analisi W(v):
+- plot upper/lower bound trattegiate + punti W(v) più piccoli del valore attuale (cosi ne mettiamo di più)
+- plot fattore guadagno: ordinare nodi per fattore di guadagno (grande-piccolo), togliere barre e lasciare il punto + linea che unisce (trattegiata)
+
+plot efficienza probl2:
+- tabella per efficienza (vedi foto telefono)
+- opzionale: fare anche plot di tabella
+
+

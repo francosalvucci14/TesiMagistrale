@@ -1,0 +1,6 @@
+# per creare la libreria condivisa fra C++ e pyhron, in modo da tenere l'esecuzione del codice TemporalRangeForest in C++, ma fare le query in Python
+#
+g++ -O3 -Wall -shared -std=c++17 -fPIC -DBUILD_PYTHON_MODULE $(python3 -m pybind11 --includes) TemporalRangeForest.cpp -o temporal_forest$(python3 -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))")
+
+# per eseguire solamente il codice C++, compilare con 
+g++ -O3 -Wall -std=c++17 -o TRF TemporalRangeForest.cpp
