@@ -1,5 +1,0 @@
-dataset_name,original_t_min,original_t_max,original_range,num_distinct_timestamps,normalized_t_max,compression_ratio,suggested_mu_small,suggested_mu_medium,suggested_mu_large
-aves-sparrow-social,2009,2010,1,2,1,1,1,1,1
-chess_year,1998,2006,8,9,8,1,1,2,4
-CollegeMsg,1082040961,1098777142,16736181,58911,58910,284.097,2945,14727,29455
-fb-forum_1,1084585996,1098798101,14212105,33515,33514,424.065,1675,8378,16757
