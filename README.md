@@ -2,9 +2,12 @@
 
 Per effettuare i test sul prob2 eseguire questa guida step-by-step
 
-1. Entrare nella cartella `TemporalSketchDataStructure`
-2. Entrare nella cartella `exp/exp_prob2_completo`
-3. Attivare il `venv` di python presente nella root directory
+1. Creare un `venv` di python con i seguenti moduli:
+    * `matplotlib`
+    * `pandas`
+    * `numpy`
+2. Entrare nella cartella `TemporalSketchDataStructure`
+3. Entrare nella cartella `exp/exp_prob2_completo`
 4. Prima di eseguire lo script `run_all.sh` assicurarsi di eseguire i seguenti comandi
     * eliminare la cartella `normalized_datasets` con `rm -rf normalized_datasets`
     * eliminare la cartella `plot_analysis` con `rm -rf plot_analysis`
