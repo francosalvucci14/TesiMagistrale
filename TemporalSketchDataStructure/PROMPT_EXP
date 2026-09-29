@@ -1,7 +1,0 @@
-io non capisco però perchè si creano questi problemi di RAM. io, per provare, ho lanciato la generazione della TRF di un dataset che viene sempre killato durante l'esperimento, tramite la MIA implementazione della TRF in c++, e li ci impiega 500 ms per creare il grafo a paritre dal dataset, e 4 cazzo di secondi per generare la TRF, ma porco dio come cazzo è possibile allora?
-
-ora volgio che tu prenda il codice dell'espeirmento e sostiuisca tutta la parte di generazione del grafo e della trf con quella che ho fatto IO
-
-Poi altre ottimizzazioni, io il grafo lo uso solo per creare la trf e per fare le query Naive, poi non mi serve più, quindi si potrebbe eliminare dallal memoria? non saprei.
-
-però è imperativo che si debba usare la MIA implementazione della TRF, che trovi nel file "TemporalRangeForest_v2.cpp"
