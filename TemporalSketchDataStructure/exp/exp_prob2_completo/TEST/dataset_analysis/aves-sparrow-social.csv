@@ -1,2 +1,0 @@
-dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
-aves-sparrow-social,52,516,2009,2010,1004,1,1

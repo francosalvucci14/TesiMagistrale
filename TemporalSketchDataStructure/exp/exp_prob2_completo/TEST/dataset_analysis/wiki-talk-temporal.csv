@@ -1,2 +1,0 @@
-dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
-wiki-talk-temporal,1140149,7833140,999130846,1199614728,499565423,100241941,50120970

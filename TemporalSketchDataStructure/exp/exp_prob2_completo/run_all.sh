@@ -15,17 +15,18 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Parametri globali
-TAU=0.70
+TAU=0.85
 K=64
 B=8
-NUM_QUERIES=100
+NUM_QUERIES=300
 
 # Dataset e mu calibrati
 DATASETS=(
   "normalized_datasets/aves-sparrow-social    aves-sparrow    1"
-  "normalized_datasets/chess_year             chess_year      4"
-  "normalized_datasets/CollegeMsg             CollegeMsg      30"
   "normalized_datasets/fb-forum_1             fb-forum_1      200"
+  "normalized_datasets/chess_year             chess_year      4"
+  "normalized_datasets/CollegeMsg             CollegeMsg      30" #30
+  #"normalized_datasets/ia-facebook-wall-wosn-dir ia-dacebook-wall 1675"
 )
 
 echo "============================================================="
@@ -38,7 +39,8 @@ echo "[STEP 1/4] Compilazione..."
 echo "  -> normalize_timestamps.cpp"
 g++ -O2 -std=c++17 -o normalize_ts normalize_timestamps.cpp
 echo "  -> esperimento_opt.cpp"
-g++ -O2 -std=c++17 -o exp_opt esperimento_opt.cpp
+#g++ -O2 -std=c++17 -o exp_opt esperimento_opt.cpp
+g++ -O3 -march=native -std=c++20 -o exp_opt esperimento_opt.cpp
 echo "  -> Completata."
 echo ""
 

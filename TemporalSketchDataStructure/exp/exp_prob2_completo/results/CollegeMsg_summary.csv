@@ -1,4 +1,4 @@
 dataset,algorithm,avg_query_time_us,memory_mb
-CollegeMsg,BruteForce,1709.09,0
-CollegeMsg,MiaSoluzione,47.2095,899.43
-CollegeMsg,Alternativa,115.991,885.696
+CollegeMsg,BruteForce,1409.24,0
+CollegeMsg,MiaSoluzione,47.0883,899.43
+CollegeMsg,Alternativa,98.0511,885.696

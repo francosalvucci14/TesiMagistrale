@@ -1,2 +1,0 @@
-dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
-soc-flickr-growth,2302925,33140017,1162422000,1179439200,581211000,8508600,4254300

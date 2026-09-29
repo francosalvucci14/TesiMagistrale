@@ -1,2 +1,0 @@
-dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
-chess_year,7301,65053,1998,2006,999,4,2

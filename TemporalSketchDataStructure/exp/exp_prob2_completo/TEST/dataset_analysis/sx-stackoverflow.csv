@@ -1,2 +1,0 @@
-dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
-sx-stackoverflow,2601977,63497050,1217567877,1457273428,608783938,119852775,59926387

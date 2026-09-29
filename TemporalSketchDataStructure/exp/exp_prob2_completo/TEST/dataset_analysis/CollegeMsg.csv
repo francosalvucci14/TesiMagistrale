@@ -1,2 +1,0 @@
-dataset_name,num_nodes,num_edges,lifetime_min,lifetime_max,mu_min_div_2,mu_max_div_2,mu_max_div_4
-CollegeMsg,1899,59835,1082040961,1098777142,541020480,8368090,4184045

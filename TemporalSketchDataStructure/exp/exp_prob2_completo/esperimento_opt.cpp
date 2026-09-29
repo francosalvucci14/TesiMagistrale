@@ -663,15 +663,15 @@ int main(int argc, char** argv) {
 
     auto t_build = Clock::now();
     NaiveSolution naive(total_nodes, provider, mu, tau, T_min, T_max);
-    std::cout << "  NaiveSolution: " << us_since(t_build) / 1000.0 << " ms\n";
+    std::cout << "  NaiveSolution (Building Time): " << us_since(t_build) / 1000.0 << " ms\n";
 
     t_build = Clock::now();
     MySolution mine(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    std::cout << "  MySolution: " << us_since(t_build) / 1000.0 << " ms\n";
+    std::cout << "  MySolution (Building Time): " << us_since(t_build) / 1000.0 << " ms\n";
 
     t_build = Clock::now();
     AlternativeSolution alt(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    std::cout << "  AlternativeSolution: " << us_since(t_build) / 1000.0 << " ms\n";
+    std::cout << "  AlternativeSolution (Building Time): " << us_since(t_build) / 1000.0 << " ms\n";
 
     double mem_naive_mb = naive.auxiliary_memory_mb();
     double mem_mine_mb  = mine.auxiliary_memory_mb();

@@ -1,4 +1,4 @@
 dataset,algorithm,avg_query_time_us,memory_mb
-fb-forum_1,BruteForce,11802.9,0
-fb-forum_1,MiaSoluzione,436.229,2382.56
-fb-forum_1,Alternativa,328.654,2454.8
+fb-forum_1,BruteForce,6497.12,0
+fb-forum_1,MiaSoluzione,390.048,2382.56
+fb-forum_1,Alternativa,219.375,2454.8
