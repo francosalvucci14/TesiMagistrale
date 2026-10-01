@@ -1,0 +1,2 @@
+dataset_name,original_t_min,original_t_max,original_range,num_distinct_timestamps,normalized_t_max,compression_ratio,suggested_mu_small,suggested_mu_medium,suggested_mu_large
+CollegeMsg,1082040961,1098777142,16736181,58911,58910,284.097,2945,14727,29455

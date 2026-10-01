@@ -15,18 +15,19 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Parametri globali
-TAU=0.85
-K=64
+TAU=0.4
+K=128
 B=8
 NUM_QUERIES=300
 
 # Dataset e mu calibrati
 DATASETS=(
-  "normalized_datasets/aves-sparrow-social    aves-sparrow    1"
-  "normalized_datasets/fb-forum_1             fb-forum_1      200"
-  "normalized_datasets/chess_year             chess_year      4"
-  "normalized_datasets/CollegeMsg             CollegeMsg      30" #30
-  #"normalized_datasets/ia-facebook-wall-wosn-dir ia-dacebook-wall 1675"
+  "discretized_datasets/aves-sparrow-social.txt    aves-sparrow    1"
+  "discretized_datasets/fb-forum_1.txt             fb-forum_1      900"
+  "discretized_datasets/chess_year.txt             chess_year      2"
+  "discretized_datasets/CollegeMsg.txt             CollegeMsg      900" #30
+  "discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
+  "discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 1500"
 )
 
 echo "============================================================="
@@ -36,8 +37,8 @@ echo ""
 
 # STEP 1: Compilazione
 echo "[STEP 1/4] Compilazione..."
-echo "  -> normalize_timestamps.cpp"
-g++ -O2 -std=c++17 -o normalize_ts normalize_timestamps.cpp
+echo "  -> discretize_ts.cpp"
+g++ -O2 -std=c++17 -o discretize_ts discretize_ts.cpp
 echo "  -> esperimento_opt.cpp"
 #g++ -O2 -std=c++17 -o exp_opt esperimento_opt.cpp
 g++ -O3 -march=native -std=c++20 -o exp_opt esperimento_opt.cpp
@@ -46,13 +47,13 @@ echo ""
 
 # STEP 2: Normalizzazione
 echo "[STEP 2/4] Normalizzazione timestamp..."
-mkdir -p normalized_datasets
+mkdir -p discretized_datasets
 DS_FILES=$(find sorted_datasets/ -type f | sort)
 if [ -z "$DS_FILES" ]; then
   echo "  [ERRORE] Nessun file in sorted_datasets/"
   exit 1
 fi
-./normalize_ts $DS_FILES
+./discretize_ts $DS_FILES
 echo ""
 
 # STEP 3: Esperimenti (uno alla volta)

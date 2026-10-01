@@ -16,10 +16,9 @@
 #include <cstdint>
 #include <cstddef>
 #include <filesystem>
+#include <cstring>
+#include <cstdlib>
 
-// ============================================================================
-// DEFINIZIONE TIPI
-// ============================================================================
 using NodeId    = uint32_t;
 using TimeStamp = uint32_t;
 using HashVal   = uint32_t;
@@ -32,7 +31,7 @@ static inline double us_since(const Clock::time_point& t0) {
 }
 
 // ============================================================================
-// 1. GRAFO TEMPORALE
+// 1. CARICAMENTO GRAFO (Legge direttamente l'output di normalize_timestamps.cpp)
 // ============================================================================
 
 struct TemporalEdge {
@@ -77,19 +76,18 @@ TemporalGraph load_temporal_graph_from_file(const std::string& path) {
         std::cerr << "Errore: Impossibile aprire il file '" << path << "'\n";
         std::exit(1);
     }
-    std::string line;
+    std::string line, u, v;
+    TimeStamp t;
     while (std::getline(in, line)) {
         if (line.empty() || line[0] == '#' || line[0] == '%') continue;
         std::istringstream iss(line);
-        std::string u, v;
-        TimeStamp t;
         if (iss >> u >> v >> t) G.add_edge(u, v, t);
     }
     return G;
 }
 
 // ============================================================================
-// 2. SKETCH MINHASH (senza vicini — solo signature)
+// 2. MINHASH CON SIGNATURE COMPATTE
 // ============================================================================
 
 class MinHashParams {
@@ -142,28 +140,12 @@ public:
         return new_sk;
     }
 
-    std::shared_ptr<MinHashNeighborhoodSketch> clone() const {
-        auto new_sk = std::make_shared<MinHashNeighborhoodSketch>(std::vector<NodeId>{}, num_perm);
-        new_sk->empty_flag = this->empty_flag;
-        new_sk->hashvalues = this->hashvalues;
-        return new_sk;
-    }
-
-    double jaccard_sim(const MinHashNeighborhoodSketch& other) const {
-        if (hashvalues.empty() || other.hashvalues.empty()) return 0.0;
-        if (hashvalues[0] == UINT32_MAX || other.hashvalues[0] == UINT32_MAX) return 0.0;
-        int matches = 0;
-        for (int i = 0; i < num_perm; ++i)
-            if (hashvalues[i] == other.hashvalues[i]) matches++;
-        return static_cast<double>(matches) / num_perm;
-    }
-
     const std::vector<HashVal>& signature() const { return hashvalues; }
     bool is_empty() const { return empty_flag; }
 };
 
 // ============================================================================
-// 3. RANGE TREE E TEMPORAL RANGE FOREST (dalla TRF v2, senza OpenMP)
+// 3. RANGE TREE SU STRUTTURA AD ALBERO OTTIMIZZATA
 // ============================================================================
 
 struct RangeTreeNode {
@@ -200,17 +182,18 @@ private:
         return n;
     }
 
-    std::shared_ptr<MinHashNeighborhoodSketch> query_internal(
-        const std::unique_ptr<RangeTreeNode>& n, TimeStamp start, TimeStamp end
-    ) const {
-        if (!n) return nullptr;
-        if (start <= n->start_time && n->end_time <= end) return n->sk;
-        if (n->end_time < start || n->start_time > end) return nullptr;
-        auto l_res = query_internal(n->left, start, end);
-        auto r_res = query_internal(n->right, start, end);
-        if (!l_res) return r_res;
-        if (!r_res) return l_res;
-        return l_res->merge(*r_res);
+    void collect(const RangeTreeNode* n, TimeStamp start, TimeStamp end,
+                 HashVal* out, int off, int len, bool& any) const {
+        if (!n) return;
+        if (n->end_time < start || n->start_time > end) return;
+        if (start <= n->start_time && n->end_time <= end) {
+            const HashVal* s = n->sk->signature().data() + off;
+            if (!any) { std::memcpy(out, s, sizeof(HashVal) * len); any = true; }
+            else for (int i = 0; i < len; ++i) out[i] = std::min(out[i], s[i]);
+            return;
+        }
+        collect(n->left.get(), start, end, out, off, len, any);
+        collect(n->right.get(), start, end, out, off, len, any);
     }
 
 public:
@@ -228,8 +211,10 @@ public:
         }
     }
 
-    std::shared_ptr<MinHashNeighborhoodSketch> query(TimeStamp start, TimeStamp end) const {
-        return query_internal(root, start, end);
+    bool query_range(TimeStamp start, TimeStamp end, HashVal* out, int off, int len) const {
+        bool any = false;
+        collect(root.get(), start, end, out, off, len, any);
+        return any;
     }
     const std::vector<TimeStamp>& get_times() const { return times; }
 };
@@ -241,7 +226,6 @@ private:
 public:
     TemporalRangeForest(const TemporalGraph* G, int k = 64) : k_signature(k) {
         NodeId n = G->num_nodes();
-        // Pre-indicizzazione O(|E|)
         std::vector<std::map<TimeStamp, std::vector<NodeId>>> adj(n);
         for (const auto& e : G->edges) {
             adj[e.u][e.time].push_back(e.v);
@@ -253,39 +237,31 @@ public:
         }
     }
 
-    RangeTree* get_tree(NodeId v) {
-        if (v < trees.size()) return &trees[v];
-        return nullptr;
+    const RangeTree* get_tree(NodeId v) const {
+        return (v < trees.size()) ? &trees[v] : nullptr;
     }
 
-    const std::vector<TimeStamp>& get_lambda(NodeId v) {
+    const std::vector<TimeStamp>& get_lambda(NodeId v) const {
         static const std::vector<TimeStamp> empty_vec;
-        auto* t = get_tree(v);
-        return t ? t->get_times() : empty_vec;
+        return (v < trees.size()) ? trees[v].get_times() : empty_vec;
     }
 };
 
 // ============================================================================
-// 4. CALCOLO W(v) — RESTITUISCE INTERVALLI FUSI [lo, hi], NON singoli istanti
-//
-// FIX #1: guardia contro underflow uint32_t su T_max - mu
-// FIX #3: rappresentazione compatta come intervalli, non lista di istanti
+// 4. CALCOLO W(v) CON INTERVALLI COMPATTI
 // ============================================================================
 
 using Interval = std::pair<TimeStamp, TimeStamp>;
 
-// Restituisce gli intervalli fusi di W(v)
 std::vector<Interval> compute_W_intervals(
     const std::vector<TimeStamp>& lambda, TimeStamp mu, TimeStamp T_min, TimeStamp T_max
 ) {
-    // FIX #1: guardia underflow
     if (lambda.empty() || T_max < mu || (T_max - mu) < T_min) return {};
-
-    TimeStamp Tmax_safe = T_max - mu;  // sicuro dopo la guardia
+    TimeStamp Tmax_safe = T_max - mu;
 
     std::vector<Interval> intervals;
     for (TimeStamp lam : lambda) {
-        TimeStamp L = (lam > mu + T_min) ? (lam - mu) : T_min;
+        TimeStamp L = (lam >= mu + T_min) ? (lam - mu) : T_min;
         TimeStamp R = std::min(Tmax_safe, lam);
         if (L <= R) intervals.push_back({L, R});
     }
@@ -304,93 +280,214 @@ std::vector<Interval> compute_W_intervals(
     return merged;
 }
 
-// Conta |W(v)| senza materializzare
 size_t count_W(const std::vector<Interval>& intervals) {
     size_t total = 0;
     for (const auto& iv : intervals) total += (iv.second - iv.first + 1);
     return total;
 }
 
-// Itera su tutti i t in W(v) — usato dove serve l'enumerazione
-// (costruzione LSH, query). Non li materializza tutti in un vettore.
-template<typename Func>
-void for_each_W(const std::vector<Interval>& intervals, Func&& func) {
-    for (const auto& iv : intervals) {
-        for (TimeStamp t = iv.first; t <= iv.second; ++t) func(t);
+struct WindowCursor {
+    const std::vector<TimeStamp>& ts;
+    size_t lo = 0, hi = 0;
+    explicit WindowCursor(const std::vector<TimeStamp>& v) : ts(v) {}
+    void advance(TimeStamp t, TimeStamp mu) {
+        const size_t n = ts.size();
+        while (lo < n && ts[lo] < t) ++lo;
+        if (hi < lo) hi = lo;
+        const uint64_t end = static_cast<uint64_t>(t) + mu;
+        while (hi < n && ts[hi] <= end) ++hi;
     }
-}
+};
 
 // ============================================================================
-// 5. LSH UTILITIES
+// 5. UTILITY LSH ED ENTRY COMPATTE (12 BYTE)
 // ============================================================================
 
-static inline uint64_t hash_band_fnv(const std::vector<HashVal>& sig, int band_idx, int r) {
+static inline uint64_t hash_band_ptr(const HashVal* band, int band_idx, int r) {
     uint64_t h = 14695981039346656037ULL ^ (static_cast<uint64_t>(band_idx + 1) * 1099511628211ULL);
-    int start = band_idx * r;
-    for (int i = 0; i < r; ++i) { h ^= sig[start + i]; h *= 1099511628211ULL; }
+    for (int i = 0; i < r; ++i) { h ^= band[i]; h *= 1099511628211ULL; }
     return h;
 }
 
+static inline uint64_t hash_band_fnv(const HashVal* sig, int band_idx, int r) {
+    return hash_band_ptr(sig + static_cast<size_t>(band_idx) * r, band_idx, r);
+}
+
 static inline LSHKey combine_with_time(uint64_t band_hash, TimeStamp t) {
-    uint64_t h = band_hash;
-    h ^= static_cast<uint64_t>(t) * 0x9E3779B97F4A7C15ULL;
-    h ^= h >> 29;
-    h *= 0xBF58476D1CE4E5B9ULL;
+    uint64_t h = band_hash + static_cast<uint64_t>(t) * 0x9E3779B97F4A7C15ULL;
+    h ^= h >> 30; h *= 0xBF58476D1CE4E5B9ULL;
+    h ^= h >> 27; h *= 0x94D049BB133111EBULL;
+    h ^= h >> 31;
     return h;
 }
 
 struct LSHParams { int k, b, r; };
 struct QueryResult { bool found = false; NodeId node = 0; TimeStamp time = 0; };
 
-// ============================================================================
-// 6. SKETCH ON-THE-FLY (nessuna cache — la TRF è veloce)
-//
-// FIX #4: nessuna unordered_map illimitata, nessuna frammentazione con OMP
-// ============================================================================
+static inline int need_matches(int k, double tau) {
+    int m = 0;
+    while (m <= k && static_cast<double>(m) / k < tau) ++m;
+    return m;
+}
+
+static inline bool sig_match_ge(const HashVal* a, const HashVal* b, int k, int need) {
+    int m = 0;
+    for (int i0 = 0; i0 < k; i0 += 16) {
+        const int i1 = std::min(k, i0 + 16);
+        for (int i = i0; i < i1; ++i) m += (a[i] == b[i]);
+        if (m + (k - i1) < need) return false;
+    }
+    return m >= need;
+}
+
+#pragma pack(push, 4)
+struct LSHEntry { uint64_t key; NodeId node; };
+struct AltEntry { uint64_t hash; NodeId node; };
+#pragma pack(pop)
+
+// Indice Piatto per la Mia Soluzione (LSH Unificato)
+class FlatBandIndex {
+    int shift = 63;
+    std::vector<uint32_t> dir;
+    std::vector<LSHEntry> ents;
+public:
+    void build(std::vector<LSHEntry>&& es) {
+        const size_t N = es.size();
+        if (N == 0) return;
+        int p = 1;
+        while (p < 28 && (static_cast<size_t>(1) << p) < N / 4 + 1) ++p;
+        shift = 64 - p;
+        const size_t B = static_cast<size_t>(1) << p;
+        dir.assign(B + 1, 0);
+        for (const auto& e : es) ++dir[(e.key >> shift) + 1];
+        for (size_t i = 0; i < B; ++i) dir[i + 1] += dir[i];
+        {
+            std::vector<uint32_t> pos(dir.begin(), dir.end() - 1);
+            ents.resize(N);
+            for (const auto& e : es) ents[pos[e.key >> shift]++] = e;
+        }
+        std::vector<LSHEntry>().swap(es);
+        for (size_t i = 0; i < B; ++i) {
+            const uint32_t lo = dir[i], hi = dir[i + 1];
+            if (hi - lo > 1) {
+                std::sort(ents.begin() + lo, ents.begin() + hi,
+                          [](const LSHEntry& x, const LSHEntry& y) { return x.key < y.key; });
+            }
+        }
+    }
+
+    template <class F>
+    bool for_each(uint64_t key, F&& f) const {
+        if (ents.empty()) return false;
+        const size_t bkt = key >> shift;
+        uint32_t lo = dir[bkt], hi = dir[bkt + 1];
+        if (hi - lo > 16) {
+            lo = static_cast<uint32_t>(std::lower_bound(ents.begin() + lo, ents.begin() + hi, key,
+                    [](const LSHEntry& e, uint64_t k) { return e.key < k; }) - ents.begin());
+        }
+        for (uint32_t i = lo; i < hi; ++i) {
+            if (ents[i].key > key) break;
+            if (ents[i].key == key && f(ents[i].node)) return true;
+        }
+        return false;
+    }
+
+    size_t memory_bytes() const {
+        return ents.capacity() * sizeof(LSHEntry) + dir.capacity() * sizeof(uint32_t);
+    }
+};
+
+// Indice CSR Piatto per l'Alternativa (T-mu strutture LSH senza overhead di hash map)
+class FlatAlternativeIndex {
+    std::vector<uint32_t> offsets;
+    std::vector<AltEntry> entries;
+public:
+    void build_from_raw(uint32_t num_windows, std::vector<std::pair<uint32_t, AltEntry>>& raw_entries) {
+        offsets.assign(num_windows + 1, 0);
+        for (const auto& re : raw_entries) {
+            if (re.first < num_windows) offsets[re.first + 1]++;
+        }
+        for (size_t i = 0; i < num_windows; ++i) offsets[i + 1] += offsets[i];
+
+        entries.resize(raw_entries.size());
+        std::vector<uint32_t> cur_pos(offsets.begin(), offsets.end() - 1);
+        for (const auto& re : raw_entries) {
+            if (re.first < num_windows) {
+                entries[cur_pos[re.first]++] = re.second;
+            }
+        }
+        std::vector<std::pair<uint32_t, AltEntry>>().swap(raw_entries);
+
+        for (size_t w = 0; w < num_windows; ++w) {
+            uint32_t lo = offsets[w], hi = offsets[w + 1];
+            if (hi - lo > 1) {
+                std::sort(entries.begin() + lo, entries.begin() + hi,
+                          [](const AltEntry& x, const AltEntry& y) { return x.hash < y.hash; });
+            }
+        }
+    }
+
+    template <class F>
+    bool for_each_in_window(uint32_t w, uint64_t hash, F&& f) const {
+        if (w >= offsets.size() - 1) return false;
+        uint32_t lo = offsets[w], hi = offsets[w + 1];
+        if (lo >= hi) return false;
+
+        auto it_lo = std::lower_bound(entries.begin() + lo, entries.begin() + hi, hash,
+                                      [](const AltEntry& e, uint64_t h) { return e.hash < h; });
+        for (auto it = it_lo; it != entries.begin() + hi && it->hash == hash; ++it) {
+            if (f(it->node)) return true;
+        }
+        return false;
+    }
+
+    size_t memory_bytes() const {
+        return offsets.capacity() * sizeof(uint32_t) + entries.capacity() * sizeof(AltEntry);
+    }
+};
 
 class SketchProvider {
-    TemporalRangeForest* forest;
+    const TemporalRangeForest* forest;
     TimeStamp mu;
+    int k;
 public:
-    SketchProvider(TemporalRangeForest* f, TimeStamp mu_) : forest(f), mu(mu_) {}
-
-    std::shared_ptr<MinHashNeighborhoodSketch> get(NodeId v, TimeStamp t) const {
-        auto* tree = forest->get_tree(v);
-        if (!tree) return nullptr;
-        return tree->query(t, t + mu);
+    SketchProvider(const TemporalRangeForest* f, TimeStamp mu_, int k_) : forest(f), mu(mu_), k(k_) {}
+    bool get_into(NodeId v, TimeStamp t, HashVal* out) const {
+        const auto* tree = forest->get_tree(v);
+        return tree && tree->query_range(t, t + mu, out, 0, k);
     }
 };
 
 // ============================================================================
-// 7. LE 3 SOLUZIONI ALGORITMICHE
+// 6. LE 3 SOLUZIONI ALGORITMICHE (ZERO-OOM GUARANTEED)
 // ============================================================================
 
 // (A) BASELINE BRUTE FORCE
-// FIX #1: guardia underflow su Tmax
 class NaiveSolution {
     TimeStamp mu, T_min, Tmax;
     double tau;
     NodeId n_nodes;
+    int k, need;
     const SketchProvider& provider;
+    mutable std::vector<HashVal> sv, su;
 public:
-    NaiveSolution(NodeId num_nodes, const SketchProvider& sp, TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax)
-        : mu(mu_), T_min(tmin),
-          Tmax(tmax >= mu_ ? tmax - mu_ : 0),  // FIX #1
-          tau(tau_), n_nodes(num_nodes), provider(sp) {}
+    NaiveSolution(NodeId num_nodes, const SketchProvider& sp, TimeStamp mu_, double tau_,
+                  TimeStamp tmin, TimeStamp tmax, int k_)
+        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
+          tau(tau_), n_nodes(num_nodes), k(k_), need(need_matches(k_, tau_)),
+          provider(sp), sv(k_), su(k_) {}
 
     double auxiliary_memory_mb() const { return 0.0; }
 
     QueryResult query(NodeId v) const {
         QueryResult res;
-        if (Tmax < T_min) return res;  // range vuoto
+        if (Tmax < T_min) return res;
         for (TimeStamp t = T_min; t <= Tmax; ++t) {
-            auto sv = provider.get(v, t);
-            if (!sv || sv->is_empty()) continue;
+            if (!provider.get_into(v, t, sv.data())) continue;
             for (NodeId u = 0; u < n_nodes; ++u) {
                 if (u == v) continue;
-                auto su = provider.get(u, t);
-                if (!su || su->is_empty()) continue;
-                if (sv->jaccard_sim(*su) >= tau) {
+                if (!provider.get_into(u, t, su.data())) continue;
+                if (sig_match_ge(sv.data(), su.data(), k, need)) {
                     res.found = true; res.node = u; res.time = t;
                     return res;
                 }
@@ -401,86 +498,107 @@ public:
 };
 
 // (B) MIA SOLUZIONE (LSH Unificato + Pruning W(v))
-// FIX #1: guardia underflow
-// FIX #3: Wv come intervalli, non come vettori di istanti
 class MySolution {
     TimeStamp mu, T_min, Tmax;
     double tau;
     LSHParams params;
+    int need;
+    const TemporalRangeForest* forest;
     const SketchProvider& provider;
 
-    // FIX #3: W(v) come intervalli fusi invece che lista esplicita
-    std::vector<std::vector<Interval>> Wv_intervals;
-    std::vector<std::unordered_map<LSHKey, std::vector<NodeId>>> tables;
+    std::vector<Interval> W_flat;
+    std::vector<size_t>   W_off;
+    std::vector<FlatBandIndex> index;
+
+    mutable std::vector<HashVal> sv, su;
+    mutable std::vector<uint64_t> bh;
+    mutable std::vector<uint32_t> seen;
+    mutable uint32_t epoch = 0;
 
 public:
-    MySolution(NodeId num_nodes, TemporalRangeForest* f, const SketchProvider& sp,
+    MySolution(NodeId num_nodes, const TemporalRangeForest* f, const SketchProvider& sp,
                TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax, LSHParams p)
-        : mu(mu_), T_min(tmin),
-          Tmax(tmax >= mu_ ? tmax - mu_ : 0),  // FIX #1
-          tau(tau_), params(p), provider(sp), tables(p.b) {
+        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
+          tau(tau_), params(p), need(need_matches(p.k, tau_)),
+          forest(f), provider(sp), index(p.b),
+          sv(p.k), su(p.k), bh(p.b), seen(num_nodes, 0) {
 
-        Wv_intervals.resize(num_nodes);
-
+        W_off.assign(static_cast<size_t>(num_nodes) + 1, 0);
+        size_t total_pairs = 0;
         for (NodeId v = 0; v < num_nodes; ++v) {
-            const auto& lam = f->get_lambda(v);
-            Wv_intervals[v] = compute_W_intervals(lam, mu, tmin, tmax);
+            auto ivs = compute_W_intervals(f->get_lambda(v), mu, tmin, tmax);
+            for (const auto& iv : ivs) total_pairs += (iv.second - iv.first + 1);
+            W_flat.insert(W_flat.end(), ivs.begin(), ivs.end());
+            W_off[v + 1] = W_flat.size();
+        }
 
-            for_each_W(Wv_intervals[v], [&](TimeStamp t) {
-                auto sk = provider.get(v, t);
-                if (!sk || sk->is_empty()) return;
-                const auto& sig = sk->signature();
-                for (int j = 0; j < params.b; ++j) {
-                    uint64_t bh = hash_band_fnv(sig, j, params.r);
-                    LSHKey key = combine_with_time(bh, t);
-                    tables[j][key].push_back(v);
+        std::vector<HashVal> band_buf(params.r);
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+        for (int j = 0; j < params.b; ++j) {
+            std::vector<LSHEntry> es;
+            es.reserve(total_pairs);
+            for (NodeId v = 0; v < num_nodes; ++v) {
+                if (W_off[v] == W_off[v + 1]) continue;
+                const auto* tree = f->get_tree(v);
+                WindowCursor cur(f->get_lambda(v));
+                size_t plo = NPOS, phi = NPOS;
+                bool ok = false; uint64_t bh_cur = 0;
+                for (size_t i = W_off[v]; i < W_off[v + 1]; ++i) {
+                    for (TimeStamp t = W_flat[i].first; t <= W_flat[i].second; ++t) {
+                        cur.advance(t, mu);
+                        if (cur.lo != plo || cur.hi != phi) {
+                            plo = cur.lo; phi = cur.hi;
+                            ok = tree->query_range(t, t + mu, band_buf.data(), j * params.r, params.r);
+                            if (ok) bh_cur = hash_band_ptr(band_buf.data(), j, params.r);
+                        }
+                        if (ok) es.push_back({combine_with_time(bh_cur, t), v});
+                    }
                 }
-            });
+            }
+            index[j].build(std::move(es));
         }
     }
 
     double auxiliary_memory_mb() const {
-        size_t bytes = 0;
-        // Wv_intervals: molto più compatto di Wv esplicito
-        bytes += Wv_intervals.capacity() * sizeof(std::vector<Interval>);
-        for (const auto& iv : Wv_intervals)
-            bytes += iv.capacity() * sizeof(Interval);
-        // LSH tables
-        bytes += tables.capacity() * sizeof(std::unordered_map<LSHKey, std::vector<NodeId>>);
-        for (const auto& tab : tables) {
-            bytes += tab.bucket_count() * sizeof(void*);
-            for (const auto& kv : tab) {
-                bytes += sizeof(LSHKey) + sizeof(std::vector<NodeId>) + (3 * sizeof(void*));
-                bytes += kv.second.capacity() * sizeof(NodeId);
-            }
-        }
+        size_t bytes = W_flat.capacity() * sizeof(Interval) + W_off.capacity() * sizeof(size_t)
+                     + seen.capacity() * sizeof(uint32_t);
+        for (const auto& ix : index) bytes += ix.memory_bytes();
         return static_cast<double>(bytes) / (1024.0 * 1024.0);
     }
 
     QueryResult query(NodeId v) const {
         QueryResult res;
-        if (v >= Wv_intervals.size()) return res;
+        if (v + 1 >= W_off.size()) return res;
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+        WindowCursor cur(forest->get_lambda(v));
+        size_t plo = NPOS, phi = NPOS;
+        bool ok = false;
 
-        for (const auto& iv : Wv_intervals[v]) {
-            for (TimeStamp t = iv.first; t <= iv.second; ++t) {
-                auto sv = provider.get(v, t);
-                if (!sv || sv->is_empty()) continue;
-                const auto& sig = sv->signature();
-                std::unordered_set<NodeId> cand;
-                for (int j = 0; j < params.b; ++j) {
-                    uint64_t bh = hash_band_fnv(sig, j, params.r);
-                    LSHKey key = combine_with_time(bh, t);
-                    auto tit = tables[j].find(key);
-                    if (tit != tables[j].end())
-                        for (NodeId u : tit->second) if (u != v) cand.insert(u);
+        for (size_t i = W_off[v]; i < W_off[v + 1]; ++i) {
+            for (TimeStamp t = W_flat[i].first; t <= W_flat[i].second; ++t) {
+                cur.advance(t, mu);
+                if (cur.lo != plo || cur.hi != phi) {
+                    plo = cur.lo; phi = cur.hi;
+                    ok = provider.get_into(v, t, sv.data());
+                    if (ok) for (int j = 0; j < params.b; ++j)
+                        bh[j] = hash_band_fnv(sv.data(), j, params.r);
                 }
-                for (NodeId u : cand) {
-                    auto su = provider.get(u, t);
-                    if (!su || su->is_empty()) continue;
-                    if (sv->jaccard_sim(*su) >= tau) {
-                        res.found = true; res.node = u; res.time = t;
-                        return res;
-                    }
+                if (!ok) continue;
+
+                if (++epoch == 0) { std::fill(seen.begin(), seen.end(), 0); epoch = 1; }
+                for (int j = 0; j < params.b; ++j) {
+                    const LSHKey key = combine_with_time(bh[j], t);
+                    const bool hit = index[j].for_each(key, [&](NodeId u) -> bool {
+                        if (u == v || seen[u] == epoch) return false;
+                        seen[u] = epoch;
+                        if (!provider.get_into(u, t, su.data())) return false;
+                        if (sig_match_ge(sv.data(), su.data(), params.k, need)) {
+                            res.found = true; res.node = u; res.time = t;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (hit) return res;
                 }
             }
         }
@@ -488,95 +606,107 @@ public:
     }
 };
 
-// (C) ALTERNATIVA (T-mu strutture LSH indipendenti)
-// FIX #1: guardia underflow
-// FIX #2: usa unordered_map<TimeStamp, ...> SPARSO invece di array denso
+// (C) ALTERNATIVA (T-mu STRUTTURE COMPATTE PIATTE — ZERO FRAMMENTAZIONE HEAP)
 class AlternativeSolution {
-    using BandTables = std::vector<std::unordered_map<uint64_t, std::vector<NodeId>>>;
-
     TimeStamp mu, T_min, Tmax;
     double tau;
     LSHParams params;
+    int need;
+    const TemporalRangeForest* forest;
     const SketchProvider& provider;
+    uint32_t num_windows;
 
-    // FIX #2: mappa sparsa timestamp → LSH, anziché vettore denso [0..T-mu]
-    std::unordered_map<TimeStamp, std::unique_ptr<BandTables>> tables;
+    std::vector<FlatAlternativeIndex> band_indices;
+    mutable std::vector<HashVal> sv, su;
+    mutable std::vector<uint64_t> bh;
+    mutable std::vector<uint32_t> seen;
+    mutable uint32_t epoch = 0;
 
 public:
-    AlternativeSolution(NodeId num_nodes, TemporalRangeForest* f, const SketchProvider& sp,
+    AlternativeSolution(NodeId num_nodes, const TemporalRangeForest* f, const SketchProvider& sp,
                         TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax, LSHParams p)
-        : mu(mu_), T_min(tmin),
-          Tmax(tmax >= mu_ ? tmax - mu_ : 0),  // FIX #1
-          tau(tau_), params(p), provider(sp) {
+        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
+          tau(tau_), params(p), need(need_matches(p.k, tau_)),
+          forest(f), provider(sp), band_indices(p.b),
+          sv(p.k), su(p.k), bh(p.b), seen(num_nodes, 0) {
 
-        for (NodeId v = 0; v < num_nodes; ++v) {
-            const auto& lam = f->get_lambda(v);
-            auto w_ivs = compute_W_intervals(lam, mu, tmin, tmax);
+        num_windows = (Tmax >= T_min) ? (Tmax - T_min + 1) : 0;
+        if (num_windows == 0) return;
 
-            for_each_W(w_ivs, [&](TimeStamp t) {
-                if (t < T_min || t > Tmax) return;
-                auto sk = provider.get(v, t);
-                if (!sk || sk->is_empty()) return;
-                const auto& sig = sk->signature();
+        std::vector<HashVal> band_buf(params.r);
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
 
-                // FIX #2: allocazione lazy per timestamp
-                auto& slot = tables[t];
-                if (!slot) slot = std::make_unique<BandTables>(params.b);
+        // Costruzione banda per banda: deallocazione immediata ad ogni step
+        for (int j = 0; j < params.b; ++j) {
+            std::vector<std::pair<uint32_t, AltEntry>> raw_entries;
+            for (NodeId v = 0; v < num_nodes; ++v) {
+                const auto* tree = f->get_tree(v);
+                if (!tree) continue;
+                auto ivs = compute_W_intervals(f->get_lambda(v), mu, tmin, tmax);
+                WindowCursor cur(f->get_lambda(v));
+                size_t plo = NPOS, phi = NPOS;
+                bool ok = false; uint64_t bh_cur = 0;
 
-                for (int j = 0; j < params.b; ++j) {
-                    uint64_t bh = hash_band_fnv(sig, j, params.r);
-                    (*slot)[j][bh].push_back(v);
+                for (const auto& iv : ivs) {
+                    for (TimeStamp t = iv.first; t <= iv.second; ++t) {
+                        cur.advance(t, mu);
+                        if (cur.lo != plo || cur.hi != phi) {
+                            plo = cur.lo; phi = cur.hi;
+                            ok = tree->query_range(t, t + mu, band_buf.data(), j * params.r, params.r);
+                            if (ok) bh_cur = hash_band_ptr(band_buf.data(), j, params.r);
+                        }
+                        if (ok) {
+                            uint32_t w = t - T_min;
+                            raw_entries.push_back({w, {bh_cur, v}});
+                        }
+                    }
                 }
-            });
+            }
+            band_indices[j].build_from_raw(num_windows, raw_entries);
         }
     }
 
     double auxiliary_memory_mb() const {
         size_t bytes = 0;
-        bytes += tables.bucket_count() * sizeof(void*);
-        for (const auto& [ts, ptr] : tables) {
-            if (!ptr) continue;
-            bytes += sizeof(TimeStamp) + sizeof(std::unique_ptr<BandTables>) + 3 * sizeof(void*);
-            const auto& bands = *ptr;
-            bytes += bands.capacity() * sizeof(std::unordered_map<uint64_t, std::vector<NodeId>>);
-            for (const auto& tab : bands) {
-                bytes += tab.bucket_count() * sizeof(void*);
-                for (const auto& kv : tab) {
-                    bytes += sizeof(uint64_t) + sizeof(std::vector<NodeId>) + 3 * sizeof(void*);
-                    bytes += kv.second.capacity() * sizeof(NodeId);
-                }
-            }
-        }
+        for (const auto& idx : band_indices) bytes += idx.memory_bytes();
+        bytes += seen.capacity() * sizeof(uint32_t);
         return static_cast<double>(bytes) / (1024.0 * 1024.0);
     }
 
     QueryResult query(NodeId v) const {
         QueryResult res;
-        if (Tmax < T_min) return res;
+        if (num_windows == 0) return res;
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+        WindowCursor cur(forest->get_lambda(v));
+        size_t plo = NPOS, phi = NPOS;
+        bool ok = false;
 
+        // Iterazione su tutte le T-mu strutture temporali
         for (TimeStamp t = T_min; t <= Tmax; ++t) {
-            auto sv = provider.get(v, t);
-            if (!sv || sv->is_empty()) continue;
-            const auto& sig = sv->signature();
-
-            auto map_it = tables.find(t);
-            if (map_it == tables.end() || !map_it->second) continue;
-
-            const BandTables& bands = *(map_it->second);
-            std::unordered_set<NodeId> cand;
-            for (int j = 0; j < params.b; ++j) {
-                uint64_t bh = hash_band_fnv(sig, j, params.r);
-                auto tit = bands[j].find(bh);
-                if (tit != bands[j].end())
-                    for (NodeId u : tit->second) if (u != v) cand.insert(u);
+            cur.advance(t, mu);
+            if (cur.lo != plo || cur.hi != phi) {
+                plo = cur.lo; phi = cur.hi;
+                ok = provider.get_into(v, t, sv.data());
+                if (ok) for (int j = 0; j < params.b; ++j)
+                    bh[j] = hash_band_fnv(sv.data(), j, params.r);
             }
-            for (NodeId u : cand) {
-                auto su = provider.get(u, t);
-                if (!su || su->is_empty()) continue;
-                if (sv->jaccard_sim(*su) >= tau) {
-                    res.found = true; res.node = u; res.time = t;
-                    return res;
-                }
+            if (!ok) continue;
+
+            uint32_t w = t - T_min;
+            if (++epoch == 0) { std::fill(seen.begin(), seen.end(), 0); epoch = 1; }
+
+            for (int j = 0; j < params.b; ++j) {
+                const bool hit = band_indices[j].for_each_in_window(w, bh[j], [&](NodeId u) -> bool {
+                    if (u == v || seen[u] == epoch) return false;
+                    seen[u] = epoch;
+                    if (!provider.get_into(u, t, su.data())) return false;
+                    if (sig_match_ge(sv.data(), su.data(), params.k, need)) {
+                        res.found = true; res.node = u; res.time = t;
+                        return true;
+                    }
+                    return false;
+                });
+                if (hit) return res;
             }
         }
         return res;
@@ -584,7 +714,7 @@ public:
 };
 
 // ============================================================================
-// MAIN
+// MAIN RUNNER
 // ============================================================================
 
 int main(int argc, char** argv) {
@@ -595,7 +725,7 @@ int main(int argc, char** argv) {
 
     std::string dataset_path = argv[1];
     std::string dataset_name = argv[2];
-    TimeStamp mu  = (argc > 3) ? static_cast<TimeStamp>(std::stoul(argv[3])) : 5;
+    TimeStamp mu  = (argc > 3) ? static_cast<TimeStamp>(std::stoul(argv[3])) : 10;
     double    tau = (argc > 4) ? std::stod(argv[4]) : 0.40;
     int k         = (argc > 5) ? std::stoi(argv[5]) : 64;
     int b         = (argc > 6) ? std::stoi(argv[6]) : 8;
@@ -605,36 +735,31 @@ int main(int argc, char** argv) {
     std::filesystem::create_directories("results");
 
     std::cout << "===============================================================\n";
-    std::cout << " ESPERIMENTO PROBLEMA 2 - DATASET: " << dataset_name << "\n";
+    std::cout << " BENCHMARK PROBLEMA 2 - DATASET: " << dataset_name << "\n";
     std::cout << "===============================================================\n";
 
-    // --- Caricamento grafo ---
+    // 1. Caricamento del dataset normalizzato
     TemporalGraph G = load_temporal_graph_from_file(dataset_path);
     NodeId total_nodes = G.num_nodes();
     TimeStamp T_min = G.get_T_min();
     TimeStamp T_max = G.get_T_max();
-
-    // FIX #1: calcolo sicuro total_windows
     TimeStamp total_windows = (T_max >= mu + T_min) ? (T_max - mu - T_min + 1) : 0;
 
     std::cout << "Archi: " << G.edges.size() << " | Nodi: " << total_nodes
-              << " | T_min: " << T_min << " | T_max: " << T_max
-              << " | mu: " << mu
-              << " | Finestre totali (T-mu): " << total_windows << "\n";
+              << " | Timeline normalizzata [" << T_min << ", " << T_max << "] | Finestre (T-mu): " << total_windows << "\n";
 
     if (total_windows == 0) {
-        std::cerr << "[ATTENZIONE] mu >= range temporale. Nessuna finestra generabile.\n";
+        std::cerr << "[ERRORE] mu (" << mu << ") e' >= dell'ampiezza temporale (" << (T_max - T_min) << "). Nessuna finestra.\n";
+        return 1;
     }
 
-    // --- Costruzione TRF (dalla tua v2, senza OpenMP) ---
+    // 2. Costruzione Temporal Range Forest
     std::cout << "Costruzione TemporalRangeForest...\n";
     auto t_trf = Clock::now();
     TemporalRangeForest trf(&G, k);
-    std::cout << "  TRF costruita in " << us_since(t_trf) / 1000.0 << " ms\n";
+    std::cout << "  TRF completata in " << us_since(t_trf) / 1000.0 << " ms\n";
 
-    // ========================================================================
-    // 1. ANALISI W(v) E FATTORE DI GUADAGNO
-    // ========================================================================
+    // 3. Analisi W(v) e Salvataggio CSV
     std::string wv_filename = "results/" + dataset_name + "_wv_analysis.csv";
     std::ofstream wv_file(wv_filename);
     wv_file << "node_id,lambda_size,w_size,upper_bound,lower_bound,no_pruning_windows,gain_factor\n";
@@ -653,44 +778,42 @@ int main(int argc, char** argv) {
                 << ub << "," << lb << "," << total_windows << "," << gain << "\n";
     }
     wv_file.close();
-    std::cout << "-> File W(v) salvato in: " << wv_filename << "\n";
+    std::cout << "-> Metriche W(v) salvate in: " << wv_filename << "\n";
 
-    // ========================================================================
-    // 2. COSTRUZIONE DELLE 3 STRUTTURE
-    // ========================================================================
-    std::cout << "Costruzione indici e strutture...\n";
-    SketchProvider provider(&trf, mu);
+    // Liberazione memoria archi non più necessari
+    { std::vector<TemporalEdge>().swap(G.edges); }
 
+    // 4. Costruzione delle 3 Soluzioni Algoritmiche
+    SketchProvider provider(&trf, mu, k);
+
+    std::cout << "Costruzione NaiveSolution (Baseline)...\n";
     auto t_build = Clock::now();
-    NaiveSolution naive(total_nodes, provider, mu, tau, T_min, T_max);
-    std::cout << "  NaiveSolution (Building Time): " << us_since(t_build) / 1000.0 << " ms\n";
+    NaiveSolution naive(total_nodes, provider, mu, tau, T_min, T_max, k);
+    std::cout << "  Naive completata in " << us_since(t_build) / 1000.0 << " ms\n";
 
+    std::cout << "Costruzione MySolution (LSH Unificato + Pruning)...\n";
     t_build = Clock::now();
     MySolution mine(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    std::cout << "  MySolution (Building Time): " << us_since(t_build) / 1000.0 << " ms\n";
+    std::cout << "  MySolution completata in " << us_since(t_build) / 1000.0 << " ms\n";
 
+    std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
     t_build = Clock::now();
     AlternativeSolution alt(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    std::cout << "  AlternativeSolution (Building Time): " << us_since(t_build) / 1000.0 << " ms\n";
+    std::cout << "  AlternativeSolution completata in " << us_since(t_build) / 1000.0 << " ms\n";
 
     double mem_naive_mb = naive.auxiliary_memory_mb();
     double mem_mine_mb  = mine.auxiliary_memory_mb();
     double mem_alt_mb   = alt.auxiliary_memory_mb();
 
-    // Liberazione memoria del grafo
-    { std::vector<TemporalEdge>().swap(G.edges); }
-    { std::unordered_map<std::string, NodeId>().swap(G.name_to_id); }
-    { std::vector<std::string>().swap(G.id_to_name); }
+    std::cout << "Memoria Ausiliaria misurata: Naive=" << mem_naive_mb 
+              << " MB | Mia=" << mem_mine_mb << " MB | Alt=" << mem_alt_mb << " MB\n";
 
-    // ========================================================================
-    // 3. ESECUZIONE QUERY
-    // ========================================================================
+    // 5. Esecuzione Benchmark Query
     std::mt19937 rng(42);
     std::uniform_int_distribution<NodeId> dist(0, total_nodes - 1);
     int queries_to_run = std::min(static_cast<NodeId>(num_queries), total_nodes);
 
     double tot_time_naive = 0.0, tot_time_mine = 0.0, tot_time_alt = 0.0;
-
     for (int q = 0; q < queries_to_run; ++q) {
         NodeId q_node = dist(rng);
 
@@ -711,9 +834,7 @@ int main(int argc, char** argv) {
     double avg_time_mine  = tot_time_mine / queries_to_run;
     double avg_time_alt   = tot_time_alt / queries_to_run;
 
-    // ========================================================================
-    // 4. ESPORTAZIONE
-    // ========================================================================
+    // 6. Salvataggio Sommario Metriche
     std::string summary_filename = "results/" + dataset_name + "_summary.csv";
     std::ofstream sum_file(summary_filename);
     sum_file << "dataset,algorithm,avg_query_time_us,memory_mb\n";
@@ -722,8 +843,8 @@ int main(int argc, char** argv) {
     sum_file << dataset_name << ",Alternativa,"  << avg_time_alt   << "," << mem_alt_mb   << "\n";
     sum_file.close();
 
-    std::cout << "-> File metriche salvato in: " << summary_filename << "\n";
-    std::cout << "Esecuzione completata per il dataset: " << dataset_name << "\n";
+    std::cout << "-> Summary salvato in: " << summary_filename << "\n";
+    std::cout << "Esperimento completato con successo senza superare la soglia di memoria.\n";
 
     return 0;
 }

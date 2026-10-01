@@ -80,7 +80,7 @@ def process_results(files):
     axes[0].set_xlabel("Dataset", fontsize=11)
     axes[0].grid(True, linestyle=":", alpha=0.6, which="both")
     axes[0].legend(fontsize=9)
-    axes[0].tick_params(axis="x", rotation=0)
+    axes[0].tick_params(axis="x", rotation=45)
 
     # Grafico Memoria Ausiliaria
     pivot_mem.plot(kind="bar", ax=axes[1], colormap="plasma", edgecolor="black", alpha=0.85)
@@ -89,7 +89,7 @@ def process_results(files):
     axes[1].set_xlabel("Dataset", fontsize=11)
     axes[1].grid(True, linestyle=":", alpha=0.6)
     axes[1].legend(fontsize=9)
-    axes[1].tick_params(axis="x", rotation=0)
+    axes[1].tick_params(axis="x", rotation=45)
 
     plt.tight_layout()
     plot_output = os.path.join(out_dir, "confronto_benchmark_dataset.png")

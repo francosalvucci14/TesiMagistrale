@@ -1,0 +1,4 @@
+dataset,algorithm,avg_query_time_us,memory_mb
+ia-facebook-wall-wosn-dir,BruteForce,2.44081e+06,0
+ia-facebook-wall-wosn-dir,MiaSoluzione,1572.74,2097.14
+ia-facebook-wall-wosn-dir,Alternativa,1976.66,1840.07

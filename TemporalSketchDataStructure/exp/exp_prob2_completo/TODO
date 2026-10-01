@@ -1,0 +1,11 @@
+Implementare Baseline con Pruning
+
+Analizzare bene algoritmo di discretizzazione
+
+Sistemare bene plot analisi W(v) e fattore di guadagno
+
+conversione automatica da (us) a (s) nelle tabelle dei tempi
+
+modificare asse y plot benchmark per far vedere bene il tempo (es: al posto del generico 10^6 magari mettere 3*10^6 o cose simili)
+
+
