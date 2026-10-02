@@ -1,0 +1,7 @@
+dataset_name,original_t_min,original_t_max,original_span_seconds,target_bins,actual_t_max,bin_duration_seconds,suggested_mu_small,suggested_mu_medium,suggested_mu_large
+aves-sparrow-social,2009,2010,1,2000,2,1,1,1,1
+chess_year,1998,2006,8,2000,9,1,1,1,2
+CollegeMsg,1082040961,1098777142,16736181,2000,2000,8369,40,200,500
+email-Eu-core-temporal_sort,0,69459254,69459254,2000,2000,34730,40,200,500
+fb-forum_1,1084585996,1098798101,14212105,2000,2000,7107,40,200,500
+ia-facebook-wall-wosn-dir,1095135831,1232598691,137462860,2000,2000,68732,40,200,500
