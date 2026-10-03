@@ -1,7 +1,6 @@
-dataset,Baseline Brute Force,Mia Soluzione (LSH Unificato),Alternativa (T-mu LSH Indipendenti)
-CollegeMsg,0.0,129.571,113.574
-aves-sparrow,0.0,0.00637054,0.00502014
-chess_year,0.0,2.96976,2.53966
-email-Eu-core-temporal_sort,0.0,99.7899,91.8082
-fb-forum_1,0.0,72.4406,64.4596
-ia-facebook-wall-wosn-dir,0.0,1499.77,1370.93
+dataset,Brute Force,Baseline + Pruning W(v),Mia Soluzione (LSH Unificato),Alternativa (T-μ LSH Indipendenti)
+CollegeMsg,0.0,0.0301208,129.571,113.574
+SFHH-conf-sensor,0.0,0.0113068,37.2856,33.3238
+chess_year,0.0,0.180313,2.96976,2.53966
+ia-enron-email-dynamic,0.0,1.64046,1028.53,898.945
+ia-facebook-wall-wosn-dir,0.0,0.858223,1499.77,1370.93

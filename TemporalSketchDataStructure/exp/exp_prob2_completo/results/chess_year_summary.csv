@@ -1,4 +1,5 @@
 dataset,algorithm,avg_query_time_us,memory_mb
-chess_year,BruteForce,2071.04,0
-chess_year,MiaSoluzione,4.52962,2.96976
-chess_year,Alternativa,11.7005,2.53966
+chess_year,BruteForce,856.744,0
+chess_year,BaselinePruning,851.661,0.180313
+chess_year,MiaSoluzione,1.78108,2.96976
+chess_year,Alternativa,3.19681,2.53966

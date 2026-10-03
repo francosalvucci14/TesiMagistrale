@@ -16,18 +16,21 @@ cd "$SCRIPT_DIR"
 
 # Parametri globali
 TAU=0.4
-K=128
+K=64
 B=8
 NUM_QUERIES=300
 
 # Dataset e mu calibrati
 DATASETS=(
-  "discretized_datasets/aves-sparrow-social.txt    aves-sparrow    1"
-  "discretized_datasets/fb-forum_1.txt             fb-forum_1      900"
+  #"discretized_datasets/aves-sparrow-social.txt    aves-sparrow    1"
+  #"discretized_datasets/fb-forum_1.txt             fb-forum_1      900"
   "discretized_datasets/chess_year.txt             chess_year      2"
   "discretized_datasets/CollegeMsg.txt             CollegeMsg      900" #30
-  "discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
+  #"discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
   "discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 1500"
+  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 350"
+  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 100"
+  "discretized_datasets/ia-yahoo-messages.txt        ia-yahoo-messages 100"
 )
 
 echo "============================================================="
@@ -72,6 +75,7 @@ for entry in "${DATASETS[@]}"; do
   echo "  -------------------------------------------------------"
   ./exp_opt "$ds_path" "$ds_name" "$mu" "$TAU" "$K" "$B" "$NUM_QUERIES"
   echo "  -> Completato: $ds_name"
+  sleep 5
 done
 echo ""
 

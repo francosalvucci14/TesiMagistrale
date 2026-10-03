@@ -1,4 +1,0 @@
-dataset,algorithm,avg_query_time_us,memory_mb
-email-Eu-core-temporal_sort,BruteForce,180549,0
-email-Eu-core-temporal_sort,MiaSoluzione,806.091,99.7899
-email-Eu-core-temporal_sort,Alternativa,1097.05,91.8082

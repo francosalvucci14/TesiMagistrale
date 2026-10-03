@@ -1,0 +1,6 @@
+dataset,Brute Force,Baseline + Pruning W(v),Mia Soluzione (LSH Unificato),Alternativa (T-μ LSH Indipendenti)
+CollegeMsg,0.0413906,0.051385099999999996,0.000272758,0.000544561
+SFHH-conf-sensor,0.0182157,0.024889400000000002,0.000336629,0.000518805
+chess_year,0.000856744,0.000851661,1.78108e-06,3.1968100000000003e-06
+ia-enron-email-dynamic,0.0374844,0.0377194,1.09354e-05,4.3827e-05
+ia-facebook-wall-wosn-dir,2.05108,2.06674,0.000253793,0.000753759

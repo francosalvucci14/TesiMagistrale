@@ -497,7 +497,60 @@ public:
     }
 };
 
-// (B) MIA SOLUZIONE (LSH Unificato + Pruning W(v))
+// (B) BASELINE CON PRUNING W(v) — stessa logica brute-force ma itera solo su W(v)
+class NaivePrunedSolution {
+    TimeStamp mu, T_min, Tmax;
+    double tau;
+    NodeId n_nodes;
+    int k, need;
+    const TemporalRangeForest* forest;
+    const SketchProvider& provider;
+
+    std::vector<Interval> W_flat;
+    std::vector<size_t>   W_off;
+
+    mutable std::vector<HashVal> sv, su;
+public:
+    NaivePrunedSolution(NodeId num_nodes, const TemporalRangeForest* f, const SketchProvider& sp,
+                        TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax, int k_)
+        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
+          tau(tau_), n_nodes(num_nodes), k(k_), need(need_matches(k_, tau_)),
+          forest(f), provider(sp), sv(k_), su(k_) {
+
+        W_off.assign(static_cast<size_t>(num_nodes) + 1, 0);
+        for (NodeId v = 0; v < num_nodes; ++v) {
+            auto ivs = compute_W_intervals(f->get_lambda(v), mu, tmin, tmax);
+            W_flat.insert(W_flat.end(), ivs.begin(), ivs.end());
+            W_off[v + 1] = W_flat.size();
+        }
+    }
+
+    double auxiliary_memory_mb() const {
+        size_t bytes = W_flat.capacity() * sizeof(Interval) + W_off.capacity() * sizeof(size_t);
+        return static_cast<double>(bytes) / (1024.0 * 1024.0);
+    }
+
+    QueryResult query(NodeId v) const {
+        QueryResult res;
+        if (v + 1 >= W_off.size()) return res;
+        for (size_t i = W_off[v]; i < W_off[v + 1]; ++i) {
+            for (TimeStamp t = W_flat[i].first; t <= W_flat[i].second; ++t) {
+                if (!provider.get_into(v, t, sv.data())) continue;
+                for (NodeId u = 0; u < n_nodes; ++u) {
+                    if (u == v) continue;
+                    if (!provider.get_into(u, t, su.data())) continue;
+                    if (sig_match_ge(sv.data(), su.data(), k, need)) {
+                        res.found = true; res.node = u; res.time = t;
+                        return res;
+                    }
+                }
+            }
+        }
+        return res;
+    }
+};
+
+// (C) MIA SOLUZIONE (LSH Unificato + Pruning W(v))
 class MySolution {
     TimeStamp mu, T_min, Tmax;
     double tau;
@@ -783,68 +836,110 @@ int main(int argc, char** argv) {
     // Liberazione memoria archi non più necessari
     { std::vector<TemporalEdge>().swap(G.edges); }
 
-    // 4. Costruzione delle 3 Soluzioni Algoritmiche
+    // 4. Provider (non alloca memoria rilevante, solo puntatori)
     SketchProvider provider(&trf, mu, k);
 
-    std::cout << "Costruzione NaiveSolution (Baseline)...\n";
-    auto t_build = Clock::now();
-    NaiveSolution naive(total_nodes, provider, mu, tau, T_min, T_max, k);
-    std::cout << "  Naive completata in " << us_since(t_build) / 1000.0 << " ms\n";
-
-    std::cout << "Costruzione MySolution (LSH Unificato + Pruning)...\n";
-    t_build = Clock::now();
-    MySolution mine(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    std::cout << "  MySolution completata in " << us_since(t_build) / 1000.0 << " ms\n";
-
-    std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
-    t_build = Clock::now();
-    AlternativeSolution alt(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    std::cout << "  AlternativeSolution completata in " << us_since(t_build) / 1000.0 << " ms\n";
-
-    double mem_naive_mb = naive.auxiliary_memory_mb();
-    double mem_mine_mb  = mine.auxiliary_memory_mb();
-    double mem_alt_mb   = alt.auxiliary_memory_mb();
-
-    std::cout << "Memoria Ausiliaria misurata: Naive=" << mem_naive_mb 
-              << " MB | Mia=" << mem_mine_mb << " MB | Alt=" << mem_alt_mb << " MB\n";
-
-    // 5. Esecuzione Benchmark Query
+    // Pre-genera i nodi su cui eseguire le query: identici per tutte le soluzioni
     std::mt19937 rng(42);
     std::uniform_int_distribution<NodeId> dist(0, total_nodes - 1);
     int queries_to_run = std::min(static_cast<NodeId>(num_queries), total_nodes);
+    std::vector<NodeId> query_nodes(queries_to_run);
+    for (int q = 0; q < queries_to_run; ++q) query_nodes[q] = dist(rng);
 
-    double tot_time_naive = 0.0, tot_time_mine = 0.0, tot_time_alt = 0.0;
-    for (int q = 0; q < queries_to_run; ++q) {
-        NodeId q_node = dist(rng);
+    // Risultati accumulati (ogni soluzione vive e muore nel proprio scope)
+    double avg_time_naive = 0.0, mem_naive_mb = 0.0;
+    double avg_time_naive_pruned = 0.0, mem_naive_pruned_mb = 0.0;
+    double avg_time_mine = 0.0, mem_mine_mb = 0.0;
+    double avg_time_alt = 0.0, mem_alt_mb = 0.0;
 
-        auto t0 = Clock::now();
-        naive.query(q_node);
-        tot_time_naive += us_since(t0);
+    // ---- (A) BruteForce ----
+    {
+        std::cout << "Costruzione NaiveSolution (Baseline)...\n";
+        auto t_build = Clock::now();
+        NaiveSolution sol(total_nodes, provider, mu, tau, T_min, T_max, k);
+        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
+        mem_naive_mb = sol.auxiliary_memory_mb();
 
-        t0 = Clock::now();
-        mine.query(q_node);
-        tot_time_mine += us_since(t0);
+        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+        double tot = 0.0;
+        for (NodeId qn : query_nodes) {
+            auto t0 = Clock::now();
+            sol.query(qn);
+            tot += us_since(t0);
+        }
+        avg_time_naive = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_naive << " us | Mem: " << mem_naive_mb << " MB\n";
+    }  // <- NaiveSolution distrutta qui
 
-        t0 = Clock::now();
-        alt.query(q_node);
-        tot_time_alt += us_since(t0);
-    }
+    // ---- (B) Baseline + Pruning W(v) ----
+    {
+        std::cout << "Costruzione NaivePrunedSolution (Baseline + Pruning W(v))...\n";
+        auto t_build = Clock::now();
+        NaivePrunedSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, k);
+        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
+        mem_naive_pruned_mb = sol.auxiliary_memory_mb();
 
-    double avg_time_naive = tot_time_naive / queries_to_run;
-    double avg_time_mine  = tot_time_mine / queries_to_run;
-    double avg_time_alt   = tot_time_alt / queries_to_run;
+        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+        double tot = 0.0;
+        for (NodeId qn : query_nodes) {
+            auto t0 = Clock::now();
+            sol.query(qn);
+            tot += us_since(t0);
+        }
+        avg_time_naive_pruned = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_naive_pruned << " us | Mem: " << mem_naive_pruned_mb << " MB\n";
+    }  // <- NaivePrunedSolution distrutta qui
 
-    // 6. Salvataggio Sommario Metriche
+    // ---- (C) Mia Soluzione (LSH Unificato + W(v)) ----
+    {
+        std::cout << "Costruzione MySolution (LSH Unificato + Pruning)...\n";
+        auto t_build = Clock::now();
+        MySolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
+        mem_mine_mb = sol.auxiliary_memory_mb();
+
+        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+        double tot = 0.0;
+        for (NodeId qn : query_nodes) {
+            auto t0 = Clock::now();
+            sol.query(qn);
+            tot += us_since(t0);
+        }
+        avg_time_mine = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_mine << " us | Mem: " << mem_mine_mb << " MB\n";
+    }  // <- MySolution distrutta qui
+
+    // ---- (D) Alternativa (T-mu LSH Indipendenti) ----
+    {
+        std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
+        auto t_build = Clock::now();
+        AlternativeSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
+        mem_alt_mb = sol.auxiliary_memory_mb();
+
+        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+        double tot = 0.0;
+        for (NodeId qn : query_nodes) {
+            auto t0 = Clock::now();
+            sol.query(qn);
+            tot += us_since(t0);
+        }
+        avg_time_alt = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_alt << " us | Mem: " << mem_alt_mb << " MB\n";
+    }  // <- AlternativeSolution distrutta qui
+
+    // 5. Salvataggio Sommario Metriche
     std::string summary_filename = "results/" + dataset_name + "_summary.csv";
     std::ofstream sum_file(summary_filename);
     sum_file << "dataset,algorithm,avg_query_time_us,memory_mb\n";
-    sum_file << dataset_name << ",BruteForce,"   << avg_time_naive << "," << mem_naive_mb << "\n";
-    sum_file << dataset_name << ",MiaSoluzione," << avg_time_mine  << "," << mem_mine_mb  << "\n";
-    sum_file << dataset_name << ",Alternativa,"  << avg_time_alt   << "," << mem_alt_mb   << "\n";
+    sum_file << dataset_name << ",BruteForce,"      << avg_time_naive        << "," << mem_naive_mb        << "\n";
+    sum_file << dataset_name << ",BaselinePruning," << avg_time_naive_pruned << "," << mem_naive_pruned_mb << "\n";
+    sum_file << dataset_name << ",MiaSoluzione,"    << avg_time_mine         << "," << mem_mine_mb         << "\n";
+    sum_file << dataset_name << ",Alternativa,"     << avg_time_alt          << "," << mem_alt_mb          << "\n";
     sum_file.close();
 
     std::cout << "-> Summary salvato in: " << summary_filename << "\n";
-    std::cout << "Esperimento completato con successo senza superare la soglia di memoria.\n";
+    std::cout << "Esperimento completato con successo.\n";
 
     return 0;
 }
