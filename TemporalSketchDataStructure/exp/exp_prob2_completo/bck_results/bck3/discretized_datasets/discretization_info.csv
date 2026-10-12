@@ -1,0 +1,9 @@
+dataset_name,original_t_min,original_t_max,original_span_seconds,target_bins,actual_t_max,bin_duration_seconds,suggested_mu_small,suggested_mu_medium,suggested_mu_large
+aves-sparrow-social,2009,2010,1,3600,2,1,1,1,1
+chess_year,1998,2006,8,3600,9,1,1,1,2
+CollegeMsg,1082040961,1098777142,16736181,3600,3600,4649,72,360,900
+email-Eu-core-temporal_sort,0,69459254,69459254,3600,3600,19295,72,360,900
+fb-forum_1,1084585996,1098798101,14212105,3600,3600,3948,72,360,900
+ia-enron-email-dynamic,315532800,1716720597,1401187797,3600,3600,389219,72,360,900
+ia-facebook-wall-wosn-dir,1095135831,1232598691,137462860,3600,3600,38185,72,360,900
+SFHH-conf-sensor,32520,146820,114300,3600,3572,32,71,357,893

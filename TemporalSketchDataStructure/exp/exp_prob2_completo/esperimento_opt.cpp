@@ -497,60 +497,7 @@ public:
     }
 };
 
-// (B) BASELINE CON PRUNING W(v) — stessa logica brute-force ma itera solo su W(v)
-class NaivePrunedSolution {
-    TimeStamp mu, T_min, Tmax;
-    double tau;
-    NodeId n_nodes;
-    int k, need;
-    const TemporalRangeForest* forest;
-    const SketchProvider& provider;
-
-    std::vector<Interval> W_flat;
-    std::vector<size_t>   W_off;
-
-    mutable std::vector<HashVal> sv, su;
-public:
-    NaivePrunedSolution(NodeId num_nodes, const TemporalRangeForest* f, const SketchProvider& sp,
-                        TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax, int k_)
-        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
-          tau(tau_), n_nodes(num_nodes), k(k_), need(need_matches(k_, tau_)),
-          forest(f), provider(sp), sv(k_), su(k_) {
-
-        W_off.assign(static_cast<size_t>(num_nodes) + 1, 0);
-        for (NodeId v = 0; v < num_nodes; ++v) {
-            auto ivs = compute_W_intervals(f->get_lambda(v), mu, tmin, tmax);
-            W_flat.insert(W_flat.end(), ivs.begin(), ivs.end());
-            W_off[v + 1] = W_flat.size();
-        }
-    }
-
-    double auxiliary_memory_mb() const {
-        size_t bytes = W_flat.capacity() * sizeof(Interval) + W_off.capacity() * sizeof(size_t);
-        return static_cast<double>(bytes) / (1024.0 * 1024.0);
-    }
-
-    QueryResult query(NodeId v) const {
-        QueryResult res;
-        if (v + 1 >= W_off.size()) return res;
-        for (size_t i = W_off[v]; i < W_off[v + 1]; ++i) {
-            for (TimeStamp t = W_flat[i].first; t <= W_flat[i].second; ++t) {
-                if (!provider.get_into(v, t, sv.data())) continue;
-                for (NodeId u = 0; u < n_nodes; ++u) {
-                    if (u == v) continue;
-                    if (!provider.get_into(u, t, su.data())) continue;
-                    if (sig_match_ge(sv.data(), su.data(), k, need)) {
-                        res.found = true; res.node = u; res.time = t;
-                        return res;
-                    }
-                }
-            }
-        }
-        return res;
-    }
-};
-
-// (C) MIA SOLUZIONE (LSH Unificato + Pruning W(v))
+// (B) MIA SOLUZIONE (LSH Unificato + Pruning W(v))
 class MySolution {
     TimeStamp mu, T_min, Tmax;
     double tau;
@@ -659,7 +606,116 @@ public:
     }
 };
 
-// (C) ALTERNATIVA (T-mu STRUTTURE COMPATTE PIATTE — ZERO FRAMMENTAZIONE HEAP)
+// (C) MIA SOLUZIONE SENZA PRUNING W(v)  [ablation]
+// Stessa logica di MySolution: stessi parametri k, b, r, stesso indice FlatBandIndex per banda,
+// stessa chiave combine_with_time(hash_banda, t), stessa verifica dei candidati.
+// NON calcola, NON memorizza e NON usa W(v). Differisce solo in:
+//   - creazione delle chiavi: ogni nodo scorre TUTTE le finestre [T_min, Tmax]
+//   - query: scorre TUTTE le finestre [T_min, Tmax] invece dei soli intervalli di W(v).
+// Le differenze misurabili sono quindi tempo di costruzione, tempo di query e (di poco) memoria
+// (MySolution paga lo spazio di W_flat/W_off, questa no).
+class MySolutionNoWv {
+    TimeStamp mu, T_min, Tmax;
+    double tau;
+    LSHParams params;
+    int need;
+    const TemporalRangeForest* forest;
+    const SketchProvider& provider;
+
+    std::vector<FlatBandIndex> index;
+    mutable std::vector<HashVal>   sv, su;
+    mutable std::vector<uint64_t>  bh;
+    mutable std::vector<uint32_t>  seen;
+    mutable uint32_t epoch = 0;
+
+public:
+    MySolutionNoWv(NodeId num_nodes, const TemporalRangeForest* f, const SketchProvider& sp,
+                   TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax, LSHParams p)
+        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
+          tau(tau_), params(p), need(need_matches(p.k, tau_)),
+          forest(f), provider(sp), index(p.b),
+          sv(p.k), su(p.k), bh(p.b), seen(num_nodes, 0) {
+
+        if (Tmax < T_min) return;
+
+        std::vector<HashVal> band_buf(params.r);
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+        for (int j = 0; j < params.b; ++j) {
+            std::vector<LSHEntry> es;
+            // Nessun reserve: senza W(v) il numero di entry non e' noto a priori (e' proprio
+            // sum|W(v)|). MySolution invece lo conosce e fa reserve esatto: e' un vantaggio reale di W(v).
+            for (NodeId v = 0; v < num_nodes; ++v) {
+                const auto* tree = f->get_tree(v);
+                if (!tree) continue;
+                WindowCursor cur(f->get_lambda(v));
+                size_t plo = NPOS, phi = NPOS;
+                bool ok = false; uint64_t bh_cur = 0;
+                for (TimeStamp t = T_min; t <= Tmax; ++t) {
+                    cur.advance(t, mu);
+                    if (cur.lo != plo || cur.hi != phi) {
+                        plo = cur.lo; phi = cur.hi;
+                        ok = tree->query_range(t, t + mu, band_buf.data(), j * params.r, params.r);
+                        if (ok) bh_cur = hash_band_ptr(band_buf.data(), j, params.r);
+                    }
+                    if (ok) es.push_back({combine_with_time(bh_cur, t), v});
+                }
+            }
+            index[j].build(std::move(es));
+        }
+    }
+
+    double auxiliary_memory_mb() const {
+        size_t bytes = seen.capacity() * sizeof(uint32_t);
+        for (const auto& ix : index) bytes += ix.memory_bytes();
+        return static_cast<double>(bytes) / (1024.0 * 1024.0);
+    }
+
+    QueryResult query(NodeId v) const {
+        QueryResult res;
+        if (Tmax < T_min) return res;
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+        WindowCursor cur(forest->get_lambda(v));
+        size_t plo = NPOS, phi = NPOS;
+        bool ok = false;
+
+        for (TimeStamp t = T_min; t <= Tmax; ++t) {
+            cur.advance(t, mu);
+            if (cur.lo != plo || cur.hi != phi) {
+                plo = cur.lo; phi = cur.hi;
+                ok = provider.get_into(v, t, sv.data());
+                if (ok) for (int j = 0; j < params.b; ++j)
+                    bh[j] = hash_band_fnv(sv.data(), j, params.r);
+            }
+            //if (!ok) continue;
+
+            if (++epoch == 0) { std::fill(seen.begin(), seen.end(), 0); epoch = 1; }
+            for (int j = 0; j < params.b; ++j) {
+                const LSHKey key = combine_with_time(bh[j], t);
+                const bool hit = index[j].for_each(key, [&](NodeId u) -> bool {
+                    if (u == v || seen[u] == epoch) return false;
+                    seen[u] = epoch;
+                    if (!provider.get_into(u, t, su.data())) return false;
+                    if (sig_match_ge(sv.data(), su.data(), params.k, need)) {
+                        res.found = true; res.node = u; res.time = t;
+                        return true;
+                    }
+                    return false;
+                });
+                if (hit) return res;
+            }
+        }
+        return res;
+    }
+};
+
+// (D) ALTERNATIVA (T-mu LSH indipendenti, uno per finestra, strutture piatte CSR)
+//
+// NOTA DI EQUITA': per un confronto controllato con MySolution, l'alternativa sfrutta W(v)
+// esattamente nello stesso modo: W(v) e' precalcolato UNA sola volta e usato
+//   - in costruzione: v viene inserito solo negli indici delle finestre t in W(v);
+//   - in query:       si interrogano solo le finestre t in W(v) (NON tutte le T-mu).
+// L'unica differenza rispetto a MySolution e' quindi la struttura di indicizzazione
+// (T-mu indici indipendenti vs un unico indice globale con chiave (banda, tempo)).
 class AlternativeSolution {
     TimeStamp mu, T_min, Tmax;
     double tau;
@@ -667,7 +723,10 @@ class AlternativeSolution {
     int need;
     const TemporalRangeForest* forest;
     const SketchProvider& provider;
-    uint32_t num_windows;
+    uint32_t num_windows = 0;
+
+    std::vector<Interval> W_flat;
+    std::vector<size_t>   W_off;
 
     std::vector<FlatAlternativeIndex> band_indices;
     mutable std::vector<HashVal> sv, su;
@@ -684,6 +743,16 @@ public:
           sv(p.k), su(p.k), bh(p.b), seen(num_nodes, 0) {
 
         num_windows = (Tmax >= T_min) ? (Tmax - T_min + 1) : 0;
+
+        // W(v) calcolato una volta sola (prima veniva ricalcolato per ogni banda)
+        W_off.assign(static_cast<size_t>(num_nodes) + 1, 0);
+        size_t total_pairs = 0;
+        for (NodeId v = 0; v < num_nodes; ++v) {
+            auto ivs = compute_W_intervals(f->get_lambda(v), mu, tmin, tmax);
+            for (const auto& iv : ivs) total_pairs += (iv.second - iv.first + 1);
+            W_flat.insert(W_flat.end(), ivs.begin(), ivs.end());
+            W_off[v + 1] = W_flat.size();
+        }
         if (num_windows == 0) return;
 
         std::vector<HashVal> band_buf(params.r);
@@ -692,16 +761,17 @@ public:
         // Costruzione banda per banda: deallocazione immediata ad ogni step
         for (int j = 0; j < params.b; ++j) {
             std::vector<std::pair<uint32_t, AltEntry>> raw_entries;
+            raw_entries.reserve(total_pairs);
             for (NodeId v = 0; v < num_nodes; ++v) {
+                if (W_off[v] == W_off[v + 1]) continue;
                 const auto* tree = f->get_tree(v);
                 if (!tree) continue;
-                auto ivs = compute_W_intervals(f->get_lambda(v), mu, tmin, tmax);
                 WindowCursor cur(f->get_lambda(v));
                 size_t plo = NPOS, phi = NPOS;
                 bool ok = false; uint64_t bh_cur = 0;
 
-                for (const auto& iv : ivs) {
-                    for (TimeStamp t = iv.first; t <= iv.second; ++t) {
+                for (size_t i = W_off[v]; i < W_off[v + 1]; ++i) {
+                    for (TimeStamp t = W_flat[i].first; t <= W_flat[i].second; ++t) {
                         cur.advance(t, mu);
                         if (cur.lo != plo || cur.hi != phi) {
                             plo = cur.lo; phi = cur.hi;
@@ -720,33 +790,135 @@ public:
     }
 
     double auxiliary_memory_mb() const {
-        size_t bytes = 0;
+        // Include W(v) (come in MySolution) per un confronto di memoria equo.
+        size_t bytes = W_flat.capacity() * sizeof(Interval) + W_off.capacity() * sizeof(size_t)
+                     + seen.capacity() * sizeof(uint32_t);
         for (const auto& idx : band_indices) bytes += idx.memory_bytes();
-        bytes += seen.capacity() * sizeof(uint32_t);
+        return static_cast<double>(bytes) / (1024.0 * 1024.0);
+    }
+
+    QueryResult query(NodeId v) const {
+        QueryResult res;
+        if (num_windows == 0 || v + 1 >= W_off.size()) return res;
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+        WindowCursor cur(forest->get_lambda(v));
+        size_t plo = NPOS, phi = NPOS;
+        bool ok = false;
+
+        // Si interrogano solo le finestre in W(v) (stesso ciclo di MySolution)
+        for (size_t i = W_off[v]; i < W_off[v + 1]; ++i) {
+            for (TimeStamp t = W_flat[i].first; t <= W_flat[i].second; ++t) {
+                cur.advance(t, mu);
+                if (cur.lo != plo || cur.hi != phi) {
+                    plo = cur.lo; phi = cur.hi;
+                    ok = provider.get_into(v, t, sv.data());
+                    if (ok) for (int j = 0; j < params.b; ++j)
+                        bh[j] = hash_band_fnv(sv.data(), j, params.r);
+                }
+                if (!ok) continue;
+
+                uint32_t w = t - T_min;
+                if (++epoch == 0) { std::fill(seen.begin(), seen.end(), 0); epoch = 1; }
+
+                for (int j = 0; j < params.b; ++j) {
+                    const bool hit = band_indices[j].for_each_in_window(w, bh[j], [&](NodeId u) -> bool {
+                        if (u == v || seen[u] == epoch) return false;
+                        seen[u] = epoch;
+                        if (!provider.get_into(u, t, su.data())) return false;
+                        if (sig_match_ge(sv.data(), su.data(), params.k, need)) {
+                            res.found = true; res.node = u; res.time = t;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (hit) return res;
+                }
+            }
+        }
+        return res;
+    }
+};
+
+// (E) Alternativa con un indice LSH indipendente per ciascuna finestra temporale.
+// Costruzione e query visitano l'intero intervallo temporale.
+class AlternativeSolutionNoWv {
+    TimeStamp mu, T_min, Tmax;
+    double tau;
+    LSHParams params;
+    int need;
+    const TemporalRangeForest* forest;
+    const SketchProvider& provider;
+    uint32_t num_windows = 0;
+
+    std::vector<FlatAlternativeIndex> band_indices;
+    mutable std::vector<HashVal> sv, su;
+    mutable std::vector<uint64_t> bh;
+    mutable std::vector<uint32_t> seen;
+    mutable uint32_t epoch = 0;
+
+public:
+    AlternativeSolutionNoWv(NodeId num_nodes, const TemporalRangeForest* f, const SketchProvider& sp,
+                            TimeStamp mu_, double tau_, TimeStamp tmin, TimeStamp tmax, LSHParams p)
+        : mu(mu_), T_min(tmin), Tmax(tmax >= mu_ ? tmax - mu_ : 0),
+          tau(tau_), params(p), need(need_matches(p.k, tau_)),
+          forest(f), provider(sp), band_indices(p.b),
+          sv(p.k), su(p.k), bh(p.b), seen(num_nodes, 0) {
+
+        num_windows = (Tmax >= T_min) ? (Tmax - T_min + 1) : 0;
+        if (num_windows == 0) return;
+
+        std::vector<HashVal> band_buf(params.r);
+        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
+
+        for (int j = 0; j < params.b; ++j) {
+            std::vector<std::pair<uint32_t, AltEntry>> raw_entries;
+            for (NodeId v = 0; v < num_nodes; ++v) {
+                const auto* tree = f->get_tree(v);
+                if (!tree) continue;
+
+                WindowCursor cur(f->get_lambda(v));
+                size_t plo = NPOS, phi = NPOS;
+                bool ok = false;
+                uint64_t bh_cur = 0;
+                for (TimeStamp t = T_min; t <= Tmax; ++t) {
+                    cur.advance(t, mu);
+                    if (cur.lo != plo || cur.hi != phi) {
+                        plo = cur.lo;
+                        phi = cur.hi;
+                        ok = tree->query_range(t, t + mu, band_buf.data(),
+                                               j * params.r, params.r);
+                        if (ok) bh_cur = hash_band_ptr(band_buf.data(), j, params.r);
+                    }
+                    if (ok) {
+                        const uint32_t w = t - T_min;
+                        raw_entries.push_back({w, {bh_cur, v}});
+                    }
+                }
+            }
+            band_indices[j].build_from_raw(num_windows, raw_entries);
+        }
+    }
+
+    double auxiliary_memory_mb() const {
+        size_t bytes = seen.capacity() * sizeof(uint32_t);
+        for (const auto& idx : band_indices) bytes += idx.memory_bytes();
         return static_cast<double>(bytes) / (1024.0 * 1024.0);
     }
 
     QueryResult query(NodeId v) const {
         QueryResult res;
         if (num_windows == 0) return res;
-        constexpr size_t NPOS = std::numeric_limits<size_t>::max();
-        WindowCursor cur(forest->get_lambda(v));
-        size_t plo = NPOS, phi = NPOS;
-        bool ok = false;
 
-        // Iterazione su tutte le T-mu strutture temporali
         for (TimeStamp t = T_min; t <= Tmax; ++t) {
-            cur.advance(t, mu);
-            if (cur.lo != plo || cur.hi != phi) {
-                plo = cur.lo; phi = cur.hi;
-                ok = provider.get_into(v, t, sv.data());
-                if (ok) for (int j = 0; j < params.b; ++j)
-                    bh[j] = hash_band_fnv(sv.data(), j, params.r);
-            }
-            if (!ok) continue;
+            if (!provider.get_into(v, t, sv.data())) continue;
+            for (int j = 0; j < params.b; ++j)
+                bh[j] = hash_band_fnv(sv.data(), j, params.r);
 
-            uint32_t w = t - T_min;
-            if (++epoch == 0) { std::fill(seen.begin(), seen.end(), 0); epoch = 1; }
+            const uint32_t w = t - T_min;
+            if (++epoch == 0) {
+                std::fill(seen.begin(), seen.end(), 0);
+                epoch = 1;
+            }
 
             for (int j = 0; j < params.b; ++j) {
                 const bool hit = band_indices[j].for_each_in_window(w, bh[j], [&](NodeId u) -> bool {
@@ -754,7 +926,9 @@ public:
                     seen[u] = epoch;
                     if (!provider.get_into(u, t, su.data())) return false;
                     if (sig_match_ge(sv.data(), su.data(), params.k, need)) {
-                        res.found = true; res.node = u; res.time = t;
+                        res.found = true;
+                        res.node = u;
+                        res.time = t;
                         return true;
                     }
                     return false;
@@ -810,7 +984,7 @@ int main(int argc, char** argv) {
     std::cout << "Costruzione TemporalRangeForest...\n";
     auto t_trf = Clock::now();
     TemporalRangeForest trf(&G, k);
-    std::cout << "  TRF completata in " << us_since(t_trf) / 1000.0 << " ms\n";
+    std::cout << "  Costruzione TRF completata in " << us_since(t_trf) / 1000.0 << " ms\n";
 
     // 3. Analisi W(v) e Salvataggio CSV
     std::string wv_filename = "results/" + dataset_name + "_wv_analysis.csv";
@@ -847,17 +1021,20 @@ int main(int argc, char** argv) {
     for (int q = 0; q < queries_to_run; ++q) query_nodes[q] = dist(rng);
 
     // Risultati accumulati (ogni soluzione vive e muore nel proprio scope)
-    double avg_time_naive = 0.0, mem_naive_mb = 0.0;
-    double avg_time_naive_pruned = 0.0, mem_naive_pruned_mb = 0.0;
-    double avg_time_mine = 0.0, mem_mine_mb = 0.0;
-    double avg_time_alt = 0.0, mem_alt_mb = 0.0;
+    double avg_time_naive = 0.0, mem_naive_mb = 0.0, build_naive_ms = 0.0;
+    double avg_time_mine = 0.0, mem_mine_mb = 0.0, build_mine_ms = 0.0;
+    // double avg_time_mine_nowv = 0.0, mem_mine_nowv_mb = 0.0, build_mine_nowv_ms = 0.0;
+    // double avg_time_alt = 0.0, mem_alt_mb = 0.0, build_alt_ms = 0.0;
+    double avg_time_alt_nowv = 0.0, mem_alt_nowv_mb = 0.0, build_alt_nowv_ms = 0.0;
+    // std::vector<QueryResult> res_mine;   // per verificare che la variante senza W(v) dia gli stessi risultati
 
     // ---- (A) BruteForce ----
     {
-        std::cout << "Costruzione NaiveSolution (Baseline)...\n";
+        std::cout << "Costruzione BruteForceSolution (Baseline)...\n";
         auto t_build = Clock::now();
         NaiveSolution sol(total_nodes, provider, mu, tau, T_min, T_max, k);
-        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
+        build_naive_ms = us_since(t_build) / 1000.0;
+        std::cout << "  Costruita in " << build_naive_ms << " ms\n";
         mem_naive_mb = sol.auxiliary_memory_mb();
 
         std::cout << "  Esecuzione " << queries_to_run << " query...\n";
@@ -869,53 +1046,89 @@ int main(int argc, char** argv) {
         }
         avg_time_naive = tot / queries_to_run;
         std::cout << "  Tempo medio: " << avg_time_naive << " us | Mem: " << mem_naive_mb << " MB\n";
+        std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
     }  // <- NaiveSolution distrutta qui
 
-    // ---- (B) Baseline + Pruning W(v) ----
+    // ---- (B) Mia Soluzione (LSH Unificato + W(v)) ----
     {
-        std::cout << "Costruzione NaivePrunedSolution (Baseline + Pruning W(v))...\n";
-        auto t_build = Clock::now();
-        NaivePrunedSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, k);
-        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
-        mem_naive_pruned_mb = sol.auxiliary_memory_mb();
-
-        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
-        double tot = 0.0;
-        for (NodeId qn : query_nodes) {
-            auto t0 = Clock::now();
-            sol.query(qn);
-            tot += us_since(t0);
-        }
-        avg_time_naive_pruned = tot / queries_to_run;
-        std::cout << "  Tempo medio: " << avg_time_naive_pruned << " us | Mem: " << mem_naive_pruned_mb << " MB\n";
-    }  // <- NaivePrunedSolution distrutta qui
-
-    // ---- (C) Mia Soluzione (LSH Unificato + W(v)) ----
-    {
-        std::cout << "Costruzione MySolution (LSH Unificato + Pruning)...\n";
+        std::cout << "Costruzione MySolution (LSH Unificato + Pruning Temporale)...\n";
         auto t_build = Clock::now();
         MySolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
+        build_mine_ms = us_since(t_build) / 1000.0;
+        std::cout << "  Costruita in " << build_mine_ms << " ms\n";
         mem_mine_mb = sol.auxiliary_memory_mb();
 
         std::cout << "  Esecuzione " << queries_to_run << " query...\n";
         double tot = 0.0;
         for (NodeId qn : query_nodes) {
             auto t0 = Clock::now();
+            // res_mine.push_back(sol.query(qn));
             sol.query(qn);
             tot += us_since(t0);
         }
         avg_time_mine = tot / queries_to_run;
         std::cout << "  Tempo medio: " << avg_time_mine << " us | Mem: " << mem_mine_mb << " MB\n";
+        std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
     }  // <- MySolution distrutta qui
 
-    // ---- (D) Alternativa (T-mu LSH Indipendenti) ----
+    // ---- (C) Mia Soluzione SENZA Pruning W(v) [variante di controllo] ----
+    // {
+    //     std::cout << "Costruzione MySolutionNoWv (LSH Unificato, NO Pruning W(v))...\n";
+    //     auto t_build = Clock::now();
+    //     MySolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+    //     build_mine_nowv_ms = us_since(t_build) / 1000.0;
+    //     std::cout << "  Costruita in " << build_mine_nowv_ms << " ms\n";
+    //     mem_mine_nowv_mb = sol.auxiliary_memory_mb();
+
+    //     std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+    //     double tot = 0.0;
+    //     size_t mismatches = 0, qi = 0;
+    //     for (NodeId qn : query_nodes) {
+    //         auto t0 = Clock::now();
+    //         QueryResult r2 = sol.query(qn);
+    //         tot += us_since(t0);
+    //         const QueryResult& r1 = res_mine[qi++];
+    //         if (r1.found != r2.found || (r1.found && (r1.node != r2.node || r1.time != r2.time))) ++mismatches;
+    //     }
+    //     avg_time_mine_nowv = tot / queries_to_run;
+    //     if (mismatches > 0)
+    //         std::cerr << "[ATTENZIONE] " << mismatches << " query con risultato diverso da MySolution: "
+    //                      "le due soluzioni dovrebbero essere equivalenti!\n";
+    //     else
+    //         std::cout << "  Verifica OK: risultati identici a MySolution su tutte le query.\n";
+    //     std::cout << "  Tempo medio: " << avg_time_mine_nowv << " us | Mem: " << mem_mine_nowv_mb << " MB\n";
+    //     std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
+    // }  // <- MySolutionNoWv distrutta qui
+
+    // // ---- (D) Alternativa (T-mu LSH Indipendenti + W(v)) ----
+    // {
+    //     std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
+    //     auto t_build = Clock::now();
+    //     AlternativeSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+    //     build_alt_ms = us_since(t_build) / 1000.0;
+    //     std::cout << "  Costruita in " << build_alt_ms << " ms\n";
+    //     mem_alt_mb = sol.auxiliary_memory_mb();
+
+    //     std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+    //     double tot = 0.0;
+    //     for (NodeId qn : query_nodes) {
+    //         auto t0 = Clock::now();
+    //         sol.query(qn);
+    //         tot += us_since(t0);
+    //     }
+    //     avg_time_alt = tot / queries_to_run;
+    //     std::cout << "  Tempo medio: " << avg_time_alt << " us | Mem: " << mem_alt_mb << " MB\n";
+    //     std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
+    // }  // <- AlternativeSolution distrutta qui
+
+    // ---- (E) Alternativa con indici LSH indipendenti, su tutte le finestre AlternativeSolutionNoWv----
     {
         std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
         auto t_build = Clock::now();
-        AlternativeSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-        std::cout << "  Costruita in " << us_since(t_build) / 1000.0 << " ms\n";
-        mem_alt_mb = sol.auxiliary_memory_mb();
+        AlternativeSolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+        build_alt_nowv_ms = us_since(t_build) / 1000.0;
+        std::cout << "  Costruita in " << build_alt_nowv_ms << " ms\n";
+        mem_alt_nowv_mb = sol.auxiliary_memory_mb();
 
         std::cout << "  Esecuzione " << queries_to_run << " query...\n";
         double tot = 0.0;
@@ -924,18 +1137,22 @@ int main(int argc, char** argv) {
             sol.query(qn);
             tot += us_since(t0);
         }
-        avg_time_alt = tot / queries_to_run;
-        std::cout << "  Tempo medio: " << avg_time_alt << " us | Mem: " << mem_alt_mb << " MB\n";
-    }  // <- AlternativeSolution distrutta qui
+        avg_time_alt_nowv = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_alt_nowv << " us | Mem: "
+                  << mem_alt_nowv_mb << " MB\n";
+        std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
+    }  // <- AlternativeSolutionNoWv distrutta qui
 
     // 5. Salvataggio Sommario Metriche
     std::string summary_filename = "results/" + dataset_name + "_summary.csv";
     std::ofstream sum_file(summary_filename);
-    sum_file << "dataset,algorithm,avg_query_time_us,memory_mb\n";
-    sum_file << dataset_name << ",BruteForce,"      << avg_time_naive        << "," << mem_naive_mb        << "\n";
-    sum_file << dataset_name << ",BaselinePruning," << avg_time_naive_pruned << "," << mem_naive_pruned_mb << "\n";
-    sum_file << dataset_name << ",MiaSoluzione,"    << avg_time_mine         << "," << mem_mine_mb         << "\n";
-    sum_file << dataset_name << ",Alternativa,"     << avg_time_alt          << "," << mem_alt_mb          << "\n";
+    sum_file << "dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms\n";
+    sum_file << dataset_name << ",BruteForce,"   << avg_time_naive << "," << mem_naive_mb << "," << build_naive_ms << "\n";
+    sum_file << dataset_name << ",MiaSoluzione,"      << avg_time_mine      << "," << mem_mine_mb      << "," << build_mine_ms      << "\n";
+    // sum_file << dataset_name << ",MiaSoluzione_NoWv," << avg_time_mine_nowv << "," << mem_mine_nowv_mb << "," << build_mine_nowv_ms << "\n";
+    // sum_file << dataset_name << ",Alternativa,"  << avg_time_alt   << "," << mem_alt_mb   << "," << build_alt_ms   << "\n";
+    sum_file << dataset_name << ",Alternativa," << avg_time_alt_nowv << ","
+             << mem_alt_nowv_mb << "," << build_alt_nowv_ms << "\n";
     sum_file.close();
 
     std::cout << "-> Summary salvato in: " << summary_filename << "\n";

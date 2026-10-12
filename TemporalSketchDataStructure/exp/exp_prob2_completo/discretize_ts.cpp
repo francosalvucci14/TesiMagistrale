@@ -12,7 +12,7 @@
 namespace fs = std::filesystem;
 
 // Numero di snapshot temporali discreti desiderati (target standard per grafi temporali)
-constexpr uint64_t DEFAULT_TARGET_BINS = 2000;
+constexpr uint64_t DEFAULT_TARGET_BINS = 8000;//2000;
 
 int main(int argc, char** argv) {
     if (argc < 2) {

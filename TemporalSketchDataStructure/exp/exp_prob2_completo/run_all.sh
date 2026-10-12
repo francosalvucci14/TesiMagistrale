@@ -15,22 +15,23 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Parametri globali
-TAU=0.4
+TAU=0.55
 K=64
 B=8
-NUM_QUERIES=300
+NUM_QUERIES=5000
 
 # Dataset e mu calibrati
 DATASETS=(
   #"discretized_datasets/aves-sparrow-social.txt    aves-sparrow    1"
-  #"discretized_datasets/fb-forum_1.txt             fb-forum_1      900"
-  "discretized_datasets/chess_year.txt             chess_year      2"
-  "discretized_datasets/CollegeMsg.txt             CollegeMsg      900" #30
+  #"discretized_datasets/fb-forum_1.txt             fb-forum_1      24934"
+  "discretized_datasets/chess_year.txt             chess_year      4"
+  "discretized_datasets/CollegeMsg.txt             CollegeMsg      20" #30
+  "discretized_datasets/ia-yahoo-messages.mtx  ia-yahoo-messages.mtx 10"
   #"discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
-  "discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 1500"
-  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 350"
-  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 100"
-  "discretized_datasets/ia-yahoo-messages.txt        ia-yahoo-messages 100"
+  #"discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 100"
+  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 50" #197
+  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 20"
+  "discretized_datasets/ia-facebook-wall-wosn-dir.txt    ia-facebook-wall-wosn-dir 100"
 )
 
 echo "============================================================="
