@@ -1,0 +1,6 @@
+dataset,Baseline (Brute Force),Mia Soluzione (LSH Unificato),Alternativa (T-μ LSH Indipendenti)
+CollegeMsg,887.75,16.6911,30.848
+SFHH-conf-sensor,1829.92,84.013,94.9354
+chess_year,1336.79,2.06783,4.02436
+ia-enron-email-dynamic,15084.6,4.20327,21.832
+ia-facebook-wall-wosn-dir,800631.0,580.936,708.383
