@@ -1,0 +1,455 @@
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
+
+using namespace std;
+using U = uint32_t;
+using Clock = chrono::steady_clock;
+static constexpr U INFU = numeric_limits<U>::max();
+
+struct Edge { uint64_t a, b, t; };
+struct Event { U v, t, h; };
+struct Rect {
+    U owner; // node v
+    U l;     // left alpha bound (inclusive)
+    U p;     // argmin time p
+    U r;     // right beta bound (inclusive)
+    U s;     // span = r-l
+    U x;     // label = h_v(p)
+};
+
+static double secs_since(const Clock::time_point& t0) {
+    return chrono::duration<double>(Clock::now() - t0).count();
+}
+static uint64_t rss_kb() {
+    ifstream f("/proc/self/status");
+    string key;
+    uint64_t v;
+    while (f >> key) {
+        if (key == "VmRSS:") { f >> v; return v; }
+        string rest; getline(f, rest);
+    }
+    return 0;
+}
+static vector<string> split(const string& s, char d) {
+    vector<string> out; string x; stringstream ss(s);
+    while (getline(ss, x, d)) if (!x.empty()) out.push_back(x);
+    return out;
+}
+static string csv_escape(const string& s) {
+    string out = "\"";
+    for (char c : s) { if (c == '"') out += '"'; out += c; }
+    out += '"';
+    return out;
+}
+
+// ---------- 4D range tree keyed by (l, p, r, s) with report box ----------
+class RangeTree4D {
+    struct Node {
+        U lo = 0, hi = 0;
+        U left = INFU, right = INFU;
+        U aux = INFU;
+        U offset = 0, len = 0;
+    };
+    vector<Node> nodes;
+    vector<U> postings;            // rectangle ids sorted by descending s at level 3
+    const vector<Rect>* rects{};
+    uint64_t budget = numeric_limits<uint64_t>::max();
+
+    static U coord(const Rect& r, int dim) {
+        if (dim == 0) return r.l;
+        if (dim == 1) return r.p;
+        return r.r;
+    }
+    void guard() {
+        uint64_t used = uint64_t(nodes.capacity()) * sizeof(Node)
+                      + uint64_t(postings.capacity()) * sizeof(U);
+        if (used > budget) throw runtime_error("Range tree exceeds --max-index-mb");
+    }
+
+    U build(vector<U> ids, int dim) {
+        sort(ids.begin(), ids.end(), [&](U a, U b) {
+            U x = coord((*rects)[a], dim), y = coord((*rects)[b], dim);
+            return x != y ? x < y : a < b;
+        });
+
+        U idx = (U)nodes.size();
+        nodes.emplace_back();
+        guard();
+        nodes[idx].lo = coord((*rects)[ids.front()], dim);
+        nodes[idx].hi = coord((*rects)[ids.back()], dim);
+
+        if (dim == 2) {
+            sort(ids.begin(), ids.end(), [&](U a, U b) {
+                if ((*rects)[a].s != (*rects)[b].s) return (*rects)[a].s > (*rects)[b].s;
+                return a < b;
+            });
+            U off = (U)postings.size();
+            postings.insert(postings.end(), ids.begin(), ids.end());
+            guard();
+            nodes[idx].offset = off;
+            nodes[idx].len = (U)ids.size();
+        } else {
+            nodes[idx].aux = build(ids, dim + 1);
+        }
+
+        if (ids.size() > 1) {
+            sort(ids.begin(), ids.end(), [&](U a, U b) {
+                U x = coord((*rects)[a], dim), y = coord((*rects)[b], dim);
+                return x != y ? x < y : a < b;
+            });
+            auto mid = ids.begin() + ids.size() / 2;
+            vector<U> left(ids.begin(), mid), right(mid, ids.end());
+            nodes[idx].left = build(move(left), dim);
+            nodes[idx].right = build(move(right), dim);
+        }
+        return idx;
+    }
+
+    template <class F>
+    void descend(U idx, int dim, U a, U b, U mu, F& cb) const {
+        const Node& n = nodes[idx];
+        U low = 0, high = INFU;
+        if (dim == 0) { low = 0;     high = b; }
+        if (dim == 1) { low = a;     high = b + mu; }
+        if (dim == 2) { low = a + mu; high = INFU; }
+
+        if (n.hi < low || n.lo > high) return;
+        if (low <= n.lo && n.hi <= high) {
+            if (dim < 2) {
+                descend(n.aux, dim + 1, a, b, mu, cb);
+            } else {
+                for (U j = 0; j < n.len; ++j) {
+                    U rid = postings[n.offset + j];
+                    if ((*rects)[rid].s < mu) break;
+                    cb(rid);
+                }
+            }
+            return;
+        }
+        if (n.left != INFU) {
+            descend(n.left, dim, a, b, mu, cb);
+            descend(n.right, dim, a, b, mu, cb);
+        }
+    }
+public:
+    U root = INFU;
+    void init(const vector<Rect>& rects_, vector<U> ids, uint64_t bytes_budget) {
+        rects = &rects_;
+        budget = bytes_budget;
+        nodes.clear(); postings.clear();
+        if (!ids.empty()) root = build(move(ids), 0);
+    }
+    template <class F>
+    void query(U a, U b, U mu, F cb) const {
+        if (root != INFU) descend(root, 0, a, b, mu, cb);
+    }
+    uint64_t bytes() const {
+        return uint64_t(nodes.capacity()) * sizeof(Node)
+             + uint64_t(postings.capacity()) * sizeof(U);
+    }
+};
+
+struct Index {
+    vector<Rect> rects;                 // all finite rectangles
+    vector<vector<U>> L;                // per-node rectangle ids, sorted by decreasing span
+    unordered_map<U, RangeTree4D> H;    // per-label range tree
+    uint64_t tree_bytes = 0;
+    U n = 0, T = 0;
+};
+
+static vector<U> parse_mus(const string& s, U T) {
+    vector<U> out;
+    for (const string& part : split(s, ',')) {
+        if (part.find('.') != string::npos) {
+            double frac = stod(part);
+            if (frac < 0.0 || frac > 1.0) throw runtime_error("mu fraction must be in [0,1]");
+            U val = (T <= 1 ? 0 : (U)llround(frac * double(T - 1)));
+            out.push_back(val);
+        } else {
+            uint64_t val = stoull(part);
+            if (val >= T) throw runtime_error("mu must be < T (maximum discretized timestamp)");
+            out.push_back((U)val);
+        }
+    }
+    sort(out.begin(), out.end());
+    out.erase(unique(out.begin(), out.end()), out.end());
+    return out;
+}
+
+int main(int argc, char** argv) {
+    try {
+        string dataset_path;
+        string out_csv = "results.csv";
+        string mus_csv = "0,1,2,4";
+        uint64_t max_index_mb = 1024;
+        uint64_t seed = 42;
+        size_t queries = 100;
+
+        for (int i = 1; i < argc; ++i) {
+            string a = argv[i];
+            if (i + 1 >= argc) throw runtime_error("missing value for " + a);
+            string b = argv[++i];
+            if (a == "--dataset") dataset_path = b;
+            else if (a == "--out") out_csv = b;
+            else if (a == "--mus") mus_csv = b;
+            else if (a == "--queries") queries = stoull(b);
+            else if (a == "--max-index-mb") max_index_mb = stoull(b);
+            else if (a == "--seed") seed = stoull(b);
+            else throw runtime_error("unknown argument " + a);
+        }
+        if (dataset_path.empty()) throw runtime_error("use --dataset PATH");
+
+        auto preprocess_start = Clock::now();
+
+        // ---------- Load edges ----------
+        ifstream in(dataset_path);
+        if (!in) throw runtime_error("cannot read " + dataset_path);
+        vector<Edge> edges;
+        string line;
+        while (getline(in, line)) {
+            if (line.empty() || line[0] == '#' || line[0] == '%') continue;
+            istringstream ss(line);
+            Edge e;
+            if (ss >> e.a >> e.b >> e.t) edges.push_back(e);
+        }
+        if (edges.empty()) throw runtime_error("dataset contains no u v t edges");
+
+        // The timestamps have ALREADY been discretized by discretize_ts.cpp.
+        // Do not perform any timestamp compression, coordinate remapping or binning here.
+        // T is the MAXIMUM value in the input file, not the count of distinct timestamps.
+        // Gaps in [1,T] are kept as inactive instants (h_v(t) = +infinity).
+        // Only node IDs are compacted internally; the original IDs are preserved in CSV.
+        vector<uint64_t> node_vals;
+        node_vals.reserve(edges.size() * 2);
+        uint64_t t_max = 0;
+        for (const auto& e : edges) {
+            if (e.t == 0 || e.t >= INFU) {
+                throw runtime_error("timestamp out of [1, 2^32-2]: input must be processed by discretize_ts.cpp first");
+            }
+            node_vals.push_back(e.a);
+            node_vals.push_back(e.b);
+            t_max = max(t_max, e.t);
+        }
+        sort(node_vals.begin(), node_vals.end());
+        node_vals.erase(unique(node_vals.begin(), node_vals.end()), node_vals.end());
+        if (node_vals.size() >= INFU) throw runtime_error("too many nodes for uint32 indexing");
+        U n = (U)node_vals.size();
+        U T = (U)t_max;  // 1-based discrete timeline, exactly as supplied by discretize_ts.cpp
+
+        // Random permutation pi over nodes -> ranks 0..n-1
+        vector<U> rank(n);
+        iota(rank.begin(), rank.end(), 0);
+        mt19937_64 rng(seed);
+        shuffle(rank.begin(), rank.end(), rng);
+
+        // Build events (v, t, h=min-rank-neighbor-at-t), one for each directed temporal incidence.
+        vector<Event> events;
+        events.reserve(edges.size() * 2);
+        for (const auto& e : edges) {
+            U u = (U)(lower_bound(node_vals.begin(), node_vals.end(), e.a) - node_vals.begin());
+            U v = (U)(lower_bound(node_vals.begin(), node_vals.end(), e.b) - node_vals.begin());
+            U t = (U)e.t;  // already in [1,T]; NEVER re-discretize or reindex
+            if (u == v) continue;
+            events.push_back({u, t, rank[v]});
+            events.push_back({v, t, rank[u]});
+        }
+        sort(events.begin(), events.end(), [](const Event& a, const Event& b) {
+            return tie(a.v, a.t, a.h) < tie(b.v, b.t, b.h);
+        });
+
+        // All edge records are no longer needed: release them before index building.
+        vector<Edge>().swap(edges);
+
+        // Reduce sorted events to min h for each (v,t) IN PLACE (less peak RAM).
+        size_t keep = 0;
+        for (size_t i = 0; i < events.size(); ++i) {
+            if (keep == 0 || events[keep-1].v != events[i].v || events[keep-1].t != events[i].t)
+                events[keep++] = events[i];
+        }
+        events.resize(keep);
+
+        // ---------- BuildIndex3 on original discretized timeline, node by node ----------
+        Index index;
+        index.n = n; index.T = T;
+        index.L.assign(n, {});
+        index.rects.reserve(events.size());
+
+        vector<U> h(T + 1, INFU), Lp(T + 1), Rp(T + 1), st;
+        size_t k = 0;
+        unordered_map<U, vector<U>> groups; // label x -> rect ids
+        groups.reserve(n * 2);
+
+        for (U v = 0; v < n; ++v) {
+            fill(h.begin(), h.end(), INFU);
+            while (k < events.size() && events[k].v == v) {
+                h[events[k].t] = events[k].h; // already minimum after reduction
+                ++k;
+            }
+
+            // Compute L_p = max{j<p : b(j)<b(p)}, with b(j)=(h(j), j) lexicographic.
+            st.clear(); st.reserve(T + 1);
+            for (U p = 1; p <= T; ++p) {
+                while (!st.empty() && h[st.back()] > h[p]) st.pop_back();
+                Lp[p] = st.empty() ? 0 : st.back();
+                st.push_back(p);
+            }
+            // Compute R_p = min{j>p : b(j)<b(p)}. Because j>p, equality on h does NOT qualify.
+            st.clear(); st.reserve(T + 1);
+            for (U pp = T; pp >= 1; --pp) {
+                while (!st.empty() && h[st.back()] >= h[pp]) st.pop_back();
+                Rp[pp] = st.empty() ? (T + 1) : st.back();
+                st.push_back(pp);
+                if (pp == 1) break;
+            }
+
+            auto& lv = index.L[v];
+            for (U p = 1; p <= T; ++p) {
+                if (h[p] == INFU) continue; // keep only finite-labeled rectangles
+                U l = Lp[p] + 1;
+                U r = Rp[p] - 1;
+                U s = r - l;
+                U rid = (U)index.rects.size();
+                index.rects.push_back({v, l, p, r, s, h[p]});
+                lv.push_back(rid);
+                groups[h[p]].push_back(rid);
+            }
+            sort(lv.begin(), lv.end(), [&](U a, U b) {
+                if (index.rects[a].s != index.rects[b].s) return index.rects[a].s > index.rects[b].s;
+                return a < b;
+            });
+        }
+
+        // Events are no longer needed after creating the finite rectangles.
+        vector<Event>().swap(events);
+
+        // Build H[x] = 4D range tree on all rectangles with label x
+        vector<pair<U, size_t>> order;
+        order.reserve(groups.size());
+        for (const auto& p : groups) order.push_back({p.first, p.second.size()});
+        sort(order.begin(), order.end(), [](auto a, auto b) { return a.second > b.second; });
+        index.H.reserve(groups.size() * 2);
+        uint64_t budget_bytes = max_index_mb * 1024ULL * 1024ULL;
+        for (auto [x, _] : order) {
+            auto it = groups.find(x);
+            if (it == groups.end()) continue;
+            if (index.tree_bytes >= budget_bytes) throw runtime_error("index memory budget exhausted");
+            RangeTree4D tree;
+            tree.init(index.rects, move(it->second), budget_bytes - index.tree_bytes);
+            index.tree_bytes += tree.bytes();
+            index.H.emplace(x, move(tree));
+            groups.erase(it);
+        }
+
+        double preprocessing_s = secs_since(preprocess_start);
+        cerr << "dataset=" << dataset_path
+             << " nodes=" << n
+             << " T_max_discretized=" << T
+             << " finite_rectangles=" << index.rects.size()
+             << " range_tree_MiB=" << fixed << setprecision(3) << (index.tree_bytes / 1048576.0)
+             << " preprocessing_s=" << setprecision(6) << preprocessing_s
+             << " RSS_KiB=" << rss_kb() << "\n";
+
+        // ---------- Query set ----------
+        vector<U> mu_vals = parse_mus(mus_csv, T);
+        vector<U> query_nodes(n);
+        iota(query_nodes.begin(), query_nodes.end(), 0);
+        shuffle(query_nodes.begin(), query_nodes.end(), rng);
+        if (queries > 0 && queries < query_nodes.size()) query_nodes.resize(queries);
+        sort(query_nodes.begin(), query_nodes.end());
+
+        // CSV header (fresh or append)
+        bool write_header = false;
+        {
+            ifstream chk(out_csv);
+            write_header = !chk.good() || chk.peek() == ifstream::traits_type::eof();
+        }
+        ofstream csv(out_csv, ios::app);
+        if (!csv) throw runtime_error("cannot write " + out_csv);
+        if (write_header) {
+            csv << "dataset,node_id,mu,mu_fraction,candidate_nodes,candidate_pairs,reported_rectangles,visited_query_rectangles,query_ms,preprocessing_s,index_mib,rss_kib,vertices,T,finite_rectangles\n";
+        }
+
+        vector<U> seen_node(n, 0);
+        U node_epoch = 1;
+
+        for (U mu : mu_vals) {
+            if (mu >= T) continue; // no valid windows [t, t+mu] within [1,T]
+            for (U v : query_nodes) {
+                auto q0 = Clock::now();
+                uint64_t candidate_nodes = 0;
+                uint64_t candidate_pairs = 0;
+                uint64_t reported_rectangles = 0;
+                uint64_t visited_query_rectangles = 0;
+                ++node_epoch;
+                if (node_epoch == 0) { fill(seen_node.begin(), seen_node.end(), 0); node_epoch = 1; }
+
+                for (U rid_v : index.L[v]) {
+                    const Rect& Rv = index.rects[rid_v];
+                    if (Rv.s < mu) break; // list sorted by decreasing span
+                    ++visited_query_rectangles;
+
+                    U a = max(Rv.l, U(Rv.p >= mu ? Rv.p - mu : 0));
+                    U b = min(Rv.p, U(Rv.r >= mu ? Rv.r - mu : 0));
+                    if (a > b) continue; // should not happen if span >= mu, but safe.
+
+                    auto it = index.H.find(Rv.x);
+                    if (it == index.H.end()) continue;
+                    it->second.query(a, b, mu, [&](U rid_u) {
+                        ++reported_rectangles;
+                        const Rect& Ru = index.rects[rid_u];
+                        if (Ru.owner == v) return; // ignore same node
+
+                        U xu_lo = max(Ru.l, U(Ru.p >= mu ? Ru.p - mu : 0));
+                        U xu_hi = min(Ru.p, U(Ru.r >= mu ? Ru.r - mu : 0));
+                        U lo = max(a, xu_lo);
+                        U hi = min(b, xu_hi);
+                        if (lo > hi) return; // not actually intersecting on D_mu
+
+                        // Exact filter output C(v,mu): all (u,t) with t in intersection.
+                        candidate_pairs += (uint64_t)(hi - lo + 1);
+                        if (seen_node[Ru.owner] != node_epoch) {
+                            seen_node[Ru.owner] = node_epoch;
+                            ++candidate_nodes;
+                        }
+                    });
+                }
+
+                double query_ms = secs_since(q0) * 1000.0;
+                csv << csv_escape(dataset_path) << ','
+                    << node_vals[v] << ','
+                    << mu << ','
+                    << fixed << setprecision(6) << (T > 1 ? double(mu) / double(T - 1) : 0.0) << ','
+                    << candidate_nodes << ','
+                    << candidate_pairs << ','
+                    << reported_rectangles << ','
+                    << visited_query_rectangles << ','
+                    << query_ms << ','
+                    << preprocessing_s << ','
+                    << (index.tree_bytes / 1048576.0) << ','
+                    << rss_kb() << ','
+                    << n << ','
+                    << T << ','
+                    << index.rects.size() << '\n';
+            }
+            csv.flush();
+            cerr << "mu=" << mu << " queries=" << query_nodes.size() << " completed\n";
+        }
+    } catch (const exception& e) {
+        cerr << "ERROR: " << e.what() << '\n';
+        return 1;
+    }
+    return 0;
+}

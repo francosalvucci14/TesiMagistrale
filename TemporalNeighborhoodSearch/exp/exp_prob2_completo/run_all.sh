@@ -26,7 +26,7 @@ DATASETS=(
   #"discretized_datasets/fb-forum_1.txt             fb-forum_1      24934"
   "discretized_datasets/chess_year.txt             chess_year      4"
   "discretized_datasets/CollegeMsg.txt             CollegeMsg      20" #30
-  "discretized_datasets/ia-yahoo-messages.mtx  ia-yahoo-messages.mtx 10"
+  #"discretized_datasets/ia-yahoo-messages.mtx  ia-yahoo-messages.mtx 10"
   #"discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
   #"discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 100"
   "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 50" #197
