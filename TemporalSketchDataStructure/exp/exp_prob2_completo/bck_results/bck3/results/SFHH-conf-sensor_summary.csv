@@ -1,5 +1,0 @@
-dataset,algorithm,avg_query_time_us,memory_mb
-SFHH-conf-sensor,BruteForce,59224.8,0
-SFHH-conf-sensor,BaselinePruning,62558.7,0.0113678
-SFHH-conf-sensor,MiaSoluzione,590.132,63.8958
-SFHH-conf-sensor,Alternativa,942.104,55.9828

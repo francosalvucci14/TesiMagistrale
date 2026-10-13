@@ -1,4 +1,0 @@
-dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
-chess_year,BruteForce,1336.79,0,0.000715
-chess_year,MiaSoluzione,2.06783,2.6297,17.677
-chess_year,Alternativa,4.02436,2.26165,27.9278
