@@ -13,3 +13,4 @@ Other/
 /TemporalNeighborhoodSearch/exp/oracle_experiment/sorted_datasets
 /TemporalNeighborhoodSearch/exp/oracle_experiment/results/oracle_exp
 /TemporalNeighborhoodSearch/exp/oracle_experiment/results/discretize_ts
+/TemporalNeighborhoodSearch/exp/oracle_experiment/results/all_datasets.csv
