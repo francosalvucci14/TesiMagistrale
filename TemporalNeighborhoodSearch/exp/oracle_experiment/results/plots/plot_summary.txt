@@ -1,0 +1,5 @@
+discretized_datasets/chess_year.txt	chess_year_comparison.png	node=5713	mu_star=2	filter_highest_mean=15.132	verified_mean_at_mu_star=0.553
+discretized_datasets/CollegeMsg.txt	CollegeMsg_comparison.png	node=468	mu_star=100	filter_highest_mean=64.435	verified_mean_at_mu_star=39.251
+discretized_datasets/SFHH-conf-sensor.txt	SFHH-conf-sensor_comparison.png	node=1828	mu_star=200	filter_highest_mean=68.814	verified_mean_at_mu_star=12.854
+discretized_datasets/ia-enron-email-dynamic.txt	ia-enron-email-dynamic_comparison.png	node=85428	mu_star=0	filter_highest_mean=229.765	verified_mean_at_mu_star=219.731
+discretized_datasets/ia-facebook-wall-wosn-dir.txt	ia-facebook-wall-wosn-dir_comparison.png	node=5456	mu_star=100	filter_highest_mean=19.690	verified_mean_at_mu_star=11.547
