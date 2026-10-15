@@ -1,6 +1,6 @@
-dataset,Baseline (Brute Force),Mia Soluzione (LSH Unificato),Alternativa (T-μ LSH Indipendenti)
-CollegeMsg,887.75,16.6911,30.848
-SFHH-conf-sensor,1829.92,84.013,94.9354
-chess_year,1336.79,2.06783,4.02436
-ia-enron-email-dynamic,15084.6,4.20327,21.832
-ia-facebook-wall-wosn-dir,800631.0,580.936,708.383
+dataset,Baseline (Brute Force),Mia Soluzione (LSH Unificato),Mia Soluzione senza W(v),Alternativa (T-μ LSH Indipendenti),AlternativaNoWv (T-μ LSH Indipendenti)
+CollegeMsg,98393.1,1396.16,1655.2,2449.9,2527.67
+SFHH-conf-sensor,34068.4,2160.62,2235.09,2827.55,3289.31
+chess_year,820.334,1.69216,1.66791,2.86127,3.07031
+ia-enron-email-dynamic,62550.6,10.4332,387.468,80.3564,73.5654
+ia-facebook-wall-wosn-dir,161606.0,43.218,123.129,96.4565,138.689

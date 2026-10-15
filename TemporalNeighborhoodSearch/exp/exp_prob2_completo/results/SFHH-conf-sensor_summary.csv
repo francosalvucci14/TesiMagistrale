@@ -1,4 +1,6 @@
 dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
-SFHH-conf-sensor,BruteForce,1829.92,0,0.000563
-SFHH-conf-sensor,MiaSoluzione,84.013,47.4042,371.451
-SFHH-conf-sensor,Alternativa,94.9354,43.5837,551.629
+SFHH-conf-sensor,BruteForce,34068.4,0,0.000246
+SFHH-conf-sensor,MiaSoluzione,2160.62,142.402,738.372
+SFHH-conf-sensor,MiaSoluzione_NoWv,2235.09,142.393,927.059
+SFHH-conf-sensor,Alternativa,2827.55,126.518,657.515
+SFHH-conf-sensor,Alternativa_NoWv,3289.31,126.51,744.549

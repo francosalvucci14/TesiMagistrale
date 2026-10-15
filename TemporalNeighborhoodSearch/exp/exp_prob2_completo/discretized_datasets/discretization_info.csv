@@ -1,2 +1,6 @@
 dataset_name,original_t_min,original_t_max,original_span_seconds,target_bins,actual_t_max,bin_duration_seconds,suggested_mu_small,suggested_mu_medium,suggested_mu_large
-ia-yahoo-messages,0,2419198,2419198,8000,7985,303,159,798,1996
+chess_year,1998,2006,8,8000,9,1,1,1,2
+CollegeMsg,1082040961,1098777142,16736181,8000,7997,2093,159,799,1999
+ia-enron-email-dynamic,315532800,1716720597,1401187797,8000,8000,175149,160,800,2000
+ia-facebook-wall-wosn-dir,1095135831,1232598691,137462860,8000,8000,17183,160,800,2000
+SFHH-conf-sensor,32520,146820,114300,8000,7621,15,152,762,1905

@@ -1013,18 +1013,40 @@ int main(int argc, char** argv) {
     // 4. Provider (non alloca memoria rilevante, solo puntatori)
     SketchProvider provider(&trf, mu, k);
 
-    // Pre-genera i nodi su cui eseguire le query: identici per tutte le soluzioni
+    // Pre-genera un campione di nodi sorgente DISTINTI (seed fisso).
+    // Cosi' ogni risposta positiva corrisponde a un nodo diverso, non a una
+    // ripetizione della stessa query. Campionamento senza rimpiazzo in O(Q)
+    // memoria, senza costruire un vettore grande quanto tutto il grafo.
+    if (num_queries <= 0) {
+        std::cerr << "[ERRORE] num_queries deve essere > 0.\n";
+        return 1;
+    }
+    const size_t queries_to_run = std::min<size_t>(static_cast<size_t>(num_queries), total_nodes);
     std::mt19937 rng(42);
-    std::uniform_int_distribution<NodeId> dist(0, total_nodes - 1);
-    int queries_to_run = std::min(static_cast<NodeId>(num_queries), total_nodes);
-    std::vector<NodeId> query_nodes(queries_to_run);
-    for (int q = 0; q < queries_to_run; ++q) query_nodes[q] = dist(rng);
+    std::unordered_set<NodeId> selected;
+    selected.reserve(queries_to_run);
+    std::vector<NodeId> query_nodes;
+    query_nodes.reserve(queries_to_run);
+    for (uint64_t j = static_cast<uint64_t>(total_nodes) - queries_to_run;
+         j < static_cast<uint64_t>(total_nodes); ++j) {
+        std::uniform_int_distribution<NodeId> dist(0, static_cast<NodeId>(j));
+        const NodeId candidate = dist(rng);
+        const NodeId chosen = selected.insert(candidate).second
+                                  ? candidate : static_cast<NodeId>(j);
+        if (chosen != candidate) selected.insert(chosen);
+        query_nodes.push_back(chosen);
+    }
+    std::shuffle(query_nodes.begin(), query_nodes.end(), rng);
+
+    // Risposte booleane delle due soluzioni; non si memorizzano sketch/candidati.
+    std::vector<uint8_t> bf_found(queries_to_run, 0);
+    std::vector<uint8_t> lsh_found(queries_to_run, 0);
 
     // Risultati accumulati (ogni soluzione vive e muore nel proprio scope)
     double avg_time_naive = 0.0, mem_naive_mb = 0.0, build_naive_ms = 0.0;
     double avg_time_mine = 0.0, mem_mine_mb = 0.0, build_mine_ms = 0.0;
-    // double avg_time_mine_nowv = 0.0, mem_mine_nowv_mb = 0.0, build_mine_nowv_ms = 0.0;
-    // double avg_time_alt = 0.0, mem_alt_mb = 0.0, build_alt_ms = 0.0;
+    double avg_time_mine_nowv = 0.0, mem_mine_nowv_mb = 0.0, build_mine_nowv_ms = 0.0;
+    double avg_time_alt = 0.0, mem_alt_mb = 0.0, build_alt_ms = 0.0;
     double avg_time_alt_nowv = 0.0, mem_alt_nowv_mb = 0.0, build_alt_nowv_ms = 0.0;
     // std::vector<QueryResult> res_mine;   // per verificare che la variante senza W(v) dia gli stessi risultati
 
@@ -1039,10 +1061,11 @@ int main(int argc, char** argv) {
 
         std::cout << "  Esecuzione " << queries_to_run << " query...\n";
         double tot = 0.0;
-        for (NodeId qn : query_nodes) {
+        for (size_t qi = 0; qi < queries_to_run; ++qi) {
             auto t0 = Clock::now();
-            sol.query(qn);
+            const QueryResult result = sol.query(query_nodes[qi]);
             tot += us_since(t0);
+            bf_found[qi] = static_cast<uint8_t>(result.found);
         }
         avg_time_naive = tot / queries_to_run;
         std::cout << "  Tempo medio: " << avg_time_naive << " us | Mem: " << mem_naive_mb << " MB\n";
@@ -1060,11 +1083,11 @@ int main(int argc, char** argv) {
 
         std::cout << "  Esecuzione " << queries_to_run << " query...\n";
         double tot = 0.0;
-        for (NodeId qn : query_nodes) {
+        for (size_t qi = 0; qi < queries_to_run; ++qi) {
             auto t0 = Clock::now();
-            // res_mine.push_back(sol.query(qn));
-            sol.query(qn);
+            const QueryResult result = sol.query(query_nodes[qi]);
             tot += us_since(t0);
+            lsh_found[qi] = static_cast<uint8_t>(result.found);
         }
         avg_time_mine = tot / queries_to_run;
         std::cout << "  Tempo medio: " << avg_time_mine << " us | Mem: " << mem_mine_mb << " MB\n";
@@ -1072,58 +1095,51 @@ int main(int argc, char** argv) {
     }  // <- MySolution distrutta qui
 
     // ---- (C) Mia Soluzione SENZA Pruning W(v) [variante di controllo] ----
-    // {
-    //     std::cout << "Costruzione MySolutionNoWv (LSH Unificato, NO Pruning W(v))...\n";
-    //     auto t_build = Clock::now();
-    //     MySolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    //     build_mine_nowv_ms = us_since(t_build) / 1000.0;
-    //     std::cout << "  Costruita in " << build_mine_nowv_ms << " ms\n";
-    //     mem_mine_nowv_mb = sol.auxiliary_memory_mb();
+    {
+        std::cout << "Costruzione MySolutionNoWv (LSH Unificato, NO Pruning W(v))...\n";
+        auto t_build = Clock::now();
+        MySolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+        build_mine_nowv_ms = us_since(t_build) / 1000.0;
+        std::cout << "  Costruita in " << build_mine_nowv_ms << " ms\n";
+        mem_mine_nowv_mb = sol.auxiliary_memory_mb();
 
-    //     std::cout << "  Esecuzione " << queries_to_run << " query...\n";
-    //     double tot = 0.0;
-    //     size_t mismatches = 0, qi = 0;
-    //     for (NodeId qn : query_nodes) {
-    //         auto t0 = Clock::now();
-    //         QueryResult r2 = sol.query(qn);
-    //         tot += us_since(t0);
-    //         const QueryResult& r1 = res_mine[qi++];
-    //         if (r1.found != r2.found || (r1.found && (r1.node != r2.node || r1.time != r2.time))) ++mismatches;
-    //     }
-    //     avg_time_mine_nowv = tot / queries_to_run;
-    //     if (mismatches > 0)
-    //         std::cerr << "[ATTENZIONE] " << mismatches << " query con risultato diverso da MySolution: "
-    //                      "le due soluzioni dovrebbero essere equivalenti!\n";
-    //     else
-    //         std::cout << "  Verifica OK: risultati identici a MySolution su tutte le query.\n";
-    //     std::cout << "  Tempo medio: " << avg_time_mine_nowv << " us | Mem: " << mem_mine_nowv_mb << " MB\n";
-    //     std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
-    // }  // <- MySolutionNoWv distrutta qui
+        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+        double tot = 0.0;
+        size_t mismatches = 0, qi = 0;
+        for (NodeId qn : query_nodes) {
+            auto t0 = Clock::now();
+            QueryResult r2 = sol.query(qn);
+            tot += us_since(t0);
+        }
+        avg_time_mine_nowv = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_mine_nowv << " us | Mem: " << mem_mine_nowv_mb << " MB\n";
+        std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
+    }  // <- MySolutionNoWv distrutta qui
 
-    // // ---- (D) Alternativa (T-mu LSH Indipendenti + W(v)) ----
-    // {
-    //     std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
-    //     auto t_build = Clock::now();
-    //     AlternativeSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-    //     build_alt_ms = us_since(t_build) / 1000.0;
-    //     std::cout << "  Costruita in " << build_alt_ms << " ms\n";
-    //     mem_alt_mb = sol.auxiliary_memory_mb();
+    // ---- (D) Alternativa (T-mu LSH Indipendenti + W(v)) ----
+    {
+        std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
+        auto t_build = Clock::now();
+        AlternativeSolution sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+        build_alt_ms = us_since(t_build) / 1000.0;
+        std::cout << "  Costruita in " << build_alt_ms << " ms\n";
+        mem_alt_mb = sol.auxiliary_memory_mb();
 
-    //     std::cout << "  Esecuzione " << queries_to_run << " query...\n";
-    //     double tot = 0.0;
-    //     for (NodeId qn : query_nodes) {
-    //         auto t0 = Clock::now();
-    //         sol.query(qn);
-    //         tot += us_since(t0);
-    //     }
-    //     avg_time_alt = tot / queries_to_run;
-    //     std::cout << "  Tempo medio: " << avg_time_alt << " us | Mem: " << mem_alt_mb << " MB\n";
-    //     std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
-    // }  // <- AlternativeSolution distrutta qui
+        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+        double tot = 0.0;
+        for (NodeId qn : query_nodes) {
+            auto t0 = Clock::now();
+            sol.query(qn);
+            tot += us_since(t0);
+        }
+        avg_time_alt = tot / queries_to_run;
+        std::cout << "  Tempo medio: " << avg_time_alt << " us | Mem: " << mem_alt_mb << " MB\n";
+        std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
+    }  // <- AlternativeSolution distrutta qui
 
     // ---- (E) Alternativa con indici LSH indipendenti, su tutte le finestre AlternativeSolutionNoWv----
     {
-        std::cout << "Costruzione AlternativeSolution (T-mu LSH Indipendenti)...\n";
+        std::cout << "Costruzione AlternativeSolutionNoWv (T-mu LSH Indipendenti)...\n";
         auto t_build = Clock::now();
         AlternativeSolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
         build_alt_nowv_ms = us_since(t_build) / 1000.0;
@@ -1143,15 +1159,61 @@ int main(int argc, char** argv) {
         std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
     }  // <- AlternativeSolutionNoWv distrutta qui
 
-    // 5. Salvataggio Sommario Metriche
+    // 5. Controllo di validita': risposte True della BF contro quelle della LSH.
+    // Si valutano gli STESSI nodi sorgente e la STESSA soglia su sketch MinHash;
+    // la BF e' esatta per questa decisione booleana (non per il Jaccard reale).
+    // Il CSV e' separato dai benchmark precedenti.
+    const std::string validity_filename = "results/" + dataset_name + "_validity.csv";
+    std::ofstream validity_file(validity_filename);
+    if (!validity_file) {
+        std::cerr << "[ERRORE] Impossibile creare: " << validity_filename << "\n";
+        return 1;
+    }
+    validity_file << "query_index,source_node_id,bruteforce_found,mia_soluzione_found,"
+                     "bruteforce_cumulative,mia_soluzione_cumulative,"
+                     "false_negative_cumulative,false_positive_cumulative\n";
+
+    size_t bf_positives = 0, lsh_positives = 0;
+    size_t false_negatives = 0, false_positives = 0;
+    for (size_t qi = 0; qi < queries_to_run; ++qi) {
+        const bool bf = bf_found[qi] != 0;
+        const bool lsh = lsh_found[qi] != 0;
+        bf_positives += bf;
+        lsh_positives += lsh;
+        false_negatives += bf && !lsh;
+        false_positives += !bf && lsh;
+        validity_file << (qi + 1) << ',' << query_nodes[qi] << ','
+                      << static_cast<int>(bf) << ',' << static_cast<int>(lsh) << ','
+                      << bf_positives << ',' << lsh_positives << ','
+                      << false_negatives << ',' << false_positives << '\n';
+    }
+    validity_file.close();
+    const double recall = bf_positives > 0
+        ? 100.0 * static_cast<double>(bf_positives - false_negatives) / bf_positives
+        : 100.0; // senza veri positivi il recall e' convenzionalmente non definito
+    std::cout << "[VALIDITY] Query su nodi distinti: " << queries_to_run
+              << " | BF=True: " << bf_positives
+              << " | LSH=True: " << lsh_positives
+              << " | False negative: " << false_negatives
+              << " | False positive: " << false_positives << "\n";
+    if (bf_positives > 0)
+        std::cout << "[VALIDITY] Recall LSH rispetto alla BF: "
+                  << std::fixed << std::setprecision(2) << recall << "%\n";
+    else
+        std::cout << "[VALIDITY] Recall non definito: nessuna query True nella BF.\n";
+    if (false_positives > 0)
+        std::cerr << "[ATTENZIONE] Trovati False Positive vs BF: verificare l'implementazione.\n";
+    std::cout << "-> Controllo validita' salvato in: " << validity_filename << "\n";
+
+    // 6. Salvataggio Sommario Metriche (invariato)
     std::string summary_filename = "results/" + dataset_name + "_summary.csv";
     std::ofstream sum_file(summary_filename);
     sum_file << "dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms\n";
     sum_file << dataset_name << ",BruteForce,"   << avg_time_naive << "," << mem_naive_mb << "," << build_naive_ms << "\n";
     sum_file << dataset_name << ",MiaSoluzione,"      << avg_time_mine      << "," << mem_mine_mb      << "," << build_mine_ms      << "\n";
-    // sum_file << dataset_name << ",MiaSoluzione_NoWv," << avg_time_mine_nowv << "," << mem_mine_nowv_mb << "," << build_mine_nowv_ms << "\n";
-    // sum_file << dataset_name << ",Alternativa,"  << avg_time_alt   << "," << mem_alt_mb   << "," << build_alt_ms   << "\n";
-    sum_file << dataset_name << ",Alternativa," << avg_time_alt_nowv << ","
+    sum_file << dataset_name << ",MiaSoluzione_NoWv," << avg_time_mine_nowv << "," << mem_mine_nowv_mb << "," << build_mine_nowv_ms << "\n";
+    sum_file << dataset_name << ",Alternativa,"  << avg_time_alt   << "," << mem_alt_mb   << "," << build_alt_ms   << "\n";
+    sum_file << dataset_name << ",Alternativa_NoWv," << avg_time_alt_nowv << ","
              << mem_alt_nowv_mb << "," << build_alt_nowv_ms << "\n";
     sum_file.close();
 

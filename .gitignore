@@ -1,12 +1,11 @@
 Other/
-#/TesiMagistrale/TemporalSketchDataStructure/exp/exp_prob2_completo/plot_analysis
-#/TesiMagistrale/TemporalSketchDataStructure/exp/exp_prob2_completo/results
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/sorted_datasets
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/discretized_datasets
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/bck_results
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/exp_opt
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/normalize_ts
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/discretize_ts
+/TemporalNeighborhoodSearch/exp/exp_prob2_completo/modifiche_Exp
 /TemporalNeighborhoodSearch/test_cpython.ipynb
 /TemporalNeighborhoodSearch/exp/oracle_experiment/discretized_datasets
 /TemporalNeighborhoodSearch/exp/oracle_experiment/discretize_ts.cpp

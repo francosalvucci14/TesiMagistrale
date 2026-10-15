@@ -11,8 +11,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Global parameters; also overridable on the command line as ENV variables.
-TAU="${TAU:-0.4}"
-K="${K:-64}"
+TAU="${TAU:-0.25}"
+K="${K:-128}"
 NUM_QUERIES="${NUM_QUERIES:-0}"    # 0 = all nodes, sample without replacement
 MAX_INDEX_MB="${MAX_INDEX_MB:-6144}"
 SEED="${SEED:-42}"                 # query sampling, NOT the MinHash hash seed (fixed 42)

@@ -15,23 +15,23 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Parametri globali
-TAU=0.55
-K=64
+TAU=0.20
+K=128
 B=8
 NUM_QUERIES=5000
 
-# Dataset e mu calibrati
+# Dataset e mu calibrati (sempre la metà di T)
 DATASETS=(
   #"discretized_datasets/aves-sparrow-social.txt    aves-sparrow    1"
   #"discretized_datasets/fb-forum_1.txt             fb-forum_1      24934"
   "discretized_datasets/chess_year.txt             chess_year      4"
-  "discretized_datasets/CollegeMsg.txt             CollegeMsg      20" #30
+  "discretized_datasets/CollegeMsg.txt             CollegeMsg      3988" #20
   #"discretized_datasets/ia-yahoo-messages.mtx  ia-yahoo-messages.mtx 10"
   #"discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
   #"discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 100"
-  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 50" #197
-  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 20"
-  "discretized_datasets/ia-facebook-wall-wosn-dir.txt    ia-facebook-wall-wosn-dir 100"
+  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 3810" #50
+  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 100" #20
+  "discretized_datasets/ia-facebook-wall-wosn-dir.txt    ia-facebook-wall-wosn-dir 20" #20
 )
 
 echo "============================================================="
@@ -50,7 +50,7 @@ echo "  -> Completata."
 echo ""
 
 # STEP 2: Normalizzazione
-echo "[STEP 2/4] Normalizzazione timestamp..."
+echo "[STEP 2/4] Discretizzazione timestamp..."
 mkdir -p discretized_datasets
 DS_FILES=$(find sorted_datasets/ -type f | sort)
 if [ -z "$DS_FILES" ]; then
@@ -84,7 +84,7 @@ echo ""
 echo "[STEP 4/4] Generazione plot e tabelle..."
 
 if [ -f plot_analysis.py ]; then
-  echo "  -> Plot di analisi W(v)..."
+  echo "  -> Plot di analisi W(v) e verifica validita LSH vs BruteForce..."
   python3 plot_analysis.py
 fi
 
