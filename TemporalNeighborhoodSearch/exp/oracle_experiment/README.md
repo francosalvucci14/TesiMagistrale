@@ -11,17 +11,21 @@ Questa versione implementa l'oracolo del **primo blocco MinHash** come descritto
 ## Output CSV
 Per ogni query `(v, mu)` vengono salvati:
 
-- `candidate_nodes`: numero di **nodi candidati distinti** `u != v`.
-- `candidate_pairs`: numero di **coppie candidate** `(u,t)`.
+- `filter_nodes`: numero di **nodi candidati distinti** `u != v`.
+- `filter_pairs`: numero di **coppie candidate** `(u,t)`.
 
-I plot usano **di default `candidate_nodes`**, così la size dei candidati resta al più `n-1`.
+L'esperimento misura solo il filtro dell'oracolo basato sulla prima componente MinHash;
+non esegue una verifica successiva con la signature completa. I plot usano **di
+default `filter_nodes`**, così la size dei candidati resta al più `n-1`.
 
 ## Plot
-Per ogni dataset viene generato **un solo file PNG** con 3 pannelli:
+Per ogni dataset viene generato **un solo file PNG** con due pannelli:
 
-1. **Nodo singolo random vs mu**: `|Candidates(v,mu)|` al variare di `mu`.
-2. **Media vs mu**: media di `|Candidates(v,mu)|` sui nodi query campionati.
-3. **Ranked nodes**: per il valore `mu*` che massimizza la media, i nodi query ordinati in senso decrescente per size dei candidati, con linea rossa sulla media.
+1. **Nodo singolo random vs μ**: `|Candidates(v,μ)|` al variare di `μ`.
+2. **Media vs μ**: media di `|Candidates(v,μ)|` sui nodi query campionati.
+
+I valori di `μ` hanno spaziatura uniforme sull'asse X e sono mostrati come
+etichette, così valori numericamente distanti non comprimono quelli più piccoli.
 
 ## Esecuzione
 ```bash
@@ -35,7 +39,5 @@ Variabili utili:
 NUM_QUERIES=100
 MAX_INDEX_MB=1024
 SEED=42
-METRIC=candidate_nodes
 SINGLE_NODE_ID=123   # opzionale
-RANKED_LOG_Y=1       # opzionale
 ```

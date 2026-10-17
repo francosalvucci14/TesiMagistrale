@@ -1047,7 +1047,7 @@ int main(int argc, char** argv) {
     double avg_time_mine = 0.0, mem_mine_mb = 0.0, build_mine_ms = 0.0;
     double avg_time_mine_nowv = 0.0, mem_mine_nowv_mb = 0.0, build_mine_nowv_ms = 0.0;
     double avg_time_alt = 0.0, mem_alt_mb = 0.0, build_alt_ms = 0.0;
-    double avg_time_alt_nowv = 0.0, mem_alt_nowv_mb = 0.0, build_alt_nowv_ms = 0.0;
+    // double avg_time_alt_nowv = 0.0, mem_alt_nowv_mb = 0.0, build_alt_nowv_ms = 0.0;
     // std::vector<QueryResult> res_mine;   // per verificare che la variante senza W(v) dia gli stessi risultati
 
     // ---- (A) BruteForce ----
@@ -1137,27 +1137,27 @@ int main(int argc, char** argv) {
         std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
     }  // <- AlternativeSolution distrutta qui
 
-    // ---- (E) Alternativa con indici LSH indipendenti, su tutte le finestre AlternativeSolutionNoWv----
-    {
-        std::cout << "Costruzione AlternativeSolutionNoWv (T-mu LSH Indipendenti)...\n";
-        auto t_build = Clock::now();
-        AlternativeSolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
-        build_alt_nowv_ms = us_since(t_build) / 1000.0;
-        std::cout << "  Costruita in " << build_alt_nowv_ms << " ms\n";
-        mem_alt_nowv_mb = sol.auxiliary_memory_mb();
+    // // ---- (E) Alternativa con indici LSH indipendenti, su tutte le finestre AlternativeSolutionNoWv----
+    // {
+    //     std::cout << "Costruzione AlternativeSolutionNoWv (T-mu LSH Indipendenti)...\n";
+    //     auto t_build = Clock::now();
+    //     AlternativeSolutionNoWv sol(total_nodes, &trf, provider, mu, tau, T_min, T_max, {k, b, r});
+    //     build_alt_nowv_ms = us_since(t_build) / 1000.0;
+    //     std::cout << "  Costruita in " << build_alt_nowv_ms << " ms\n";
+    //     mem_alt_nowv_mb = sol.auxiliary_memory_mb();
 
-        std::cout << "  Esecuzione " << queries_to_run << " query...\n";
-        double tot = 0.0;
-        for (NodeId qn : query_nodes) {
-            auto t0 = Clock::now();
-            sol.query(qn);
-            tot += us_since(t0);
-        }
-        avg_time_alt_nowv = tot / queries_to_run;
-        std::cout << "  Tempo medio: " << avg_time_alt_nowv << " us | Mem: "
-                  << mem_alt_nowv_mb << " MB\n";
-        std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
-    }  // <- AlternativeSolutionNoWv distrutta qui
+    //     std::cout << "  Esecuzione " << queries_to_run << " query...\n";
+    //     double tot = 0.0;
+    //     for (NodeId qn : query_nodes) {
+    //         auto t0 = Clock::now();
+    //         sol.query(qn);
+    //         tot += us_since(t0);
+    //     }
+    //     avg_time_alt_nowv = tot / queries_to_run;
+    //     std::cout << "  Tempo medio: " << avg_time_alt_nowv << " us | Mem: "
+    //               << mem_alt_nowv_mb << " MB\n";
+    //     std::cout << "  Tempo totale di esecuzione: " << tot << "us\n";
+    // }  // <- AlternativeSolutionNoWv distrutta qui
 
     // 5. Controllo di validita': risposte True della BF contro quelle della LSH.
     // Si valutano gli STESSI nodi sorgente e la STESSA soglia su sketch MinHash;
@@ -1213,8 +1213,7 @@ int main(int argc, char** argv) {
     sum_file << dataset_name << ",MiaSoluzione,"      << avg_time_mine      << "," << mem_mine_mb      << "," << build_mine_ms      << "\n";
     sum_file << dataset_name << ",MiaSoluzione_NoWv," << avg_time_mine_nowv << "," << mem_mine_nowv_mb << "," << build_mine_nowv_ms << "\n";
     sum_file << dataset_name << ",Alternativa,"  << avg_time_alt   << "," << mem_alt_mb   << "," << build_alt_ms   << "\n";
-    sum_file << dataset_name << ",Alternativa_NoWv," << avg_time_alt_nowv << ","
-             << mem_alt_nowv_mb << "," << build_alt_nowv_ms << "\n";
+    // sum_file << dataset_name << ",Alternativa_NoWv," << avg_time_alt_nowv << "," << mem_alt_nowv_mb << "," << build_alt_nowv_ms << "\n";
     sum_file.close();
 
     std::cout << "-> Summary salvato in: " << summary_filename << "\n";

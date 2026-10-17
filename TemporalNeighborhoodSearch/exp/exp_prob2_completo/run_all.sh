@@ -15,10 +15,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Parametri globali
-TAU=0.20
-K=128
+TAU=0.35
+K=64
 B=8
-NUM_QUERIES=5000
+NUM_QUERIES=8000
 
 # Dataset e mu calibrati (sempre la metà di T)
 DATASETS=(
@@ -29,8 +29,8 @@ DATASETS=(
   #"discretized_datasets/ia-yahoo-messages.mtx  ia-yahoo-messages.mtx 10"
   #"discretized_datasets/email-Eu-core-temporal_sort.txt email-Eu-core-temporal_sort 900"
   #"discretized_datasets/ia-facebook-wall-wosn-dir.txt ia-facebook-wall-wosn-dir 100"
-  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 3810" #50
-  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 100" #20
+  "discretized_datasets/SFHH-conf-sensor.txt       SFHH-conf-sensor 3810"              #50
+  "discretized_datasets/ia-enron-email-dynamic.txt  ia-enron-email-dynamic 100"        #20
   "discretized_datasets/ia-facebook-wall-wosn-dir.txt    ia-facebook-wall-wosn-dir 20" #20
 )
 

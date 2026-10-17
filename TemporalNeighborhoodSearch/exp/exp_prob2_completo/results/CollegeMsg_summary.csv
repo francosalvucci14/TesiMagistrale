@@ -1,6 +1,5 @@
 dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
-CollegeMsg,BruteForce,98393.1,0,0.000256
-CollegeMsg,MiaSoluzione,1396.16,501.883,2319.31
-CollegeMsg,MiaSoluzione_NoWv,1655.2,501.853,2576.25
-CollegeMsg,Alternativa,2449.9,438.006,2266.84
-CollegeMsg,Alternativa_NoWv,2527.67,437.976,2642.75
+CollegeMsg,BruteForce,195103,0,0.000255
+CollegeMsg,MiaSoluzione,1188.75,501.883,1948.72
+CollegeMsg,MiaSoluzione_NoWv,1398.32,501.853,2160.69
+CollegeMsg,Alternativa,2028.15,438.006,1907.07

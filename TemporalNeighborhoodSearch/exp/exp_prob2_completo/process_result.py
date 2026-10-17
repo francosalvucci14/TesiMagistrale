@@ -57,7 +57,7 @@ ALGO_MAP = {
     "MiaSoluzione": "Mia Soluzione (LSH Unificato)",
     "MiaSoluzione_NoWv": "Mia Soluzione senza W(v)",
     "Alternativa":  "Alternativa (T-μ LSH Indipendenti)",
-    "Alternativa_NoWv": "AlternativaNoWv (T-μ LSH Indipendenti)",
+    # "Alternativa_NoWv": "AlternativaNoWv (T-μ LSH Indipendenti)",
 }
 ALGO_ORDER = list(ALGO_MAP.values())
 
@@ -237,7 +237,7 @@ def process_results(files):
 
     # File storico: ora mostra SOLO MiaSoluzione e Alternativa, tutte le Y lineari.
     benchmark_plot(
-        [ALGO_MAP["MiaSoluzione"], ALGO_MAP["MiaSoluzione_NoWv"],ALGO_MAP["Alternativa"],ALGO_MAP["Alternativa_NoWv"]],
+        [ALGO_MAP["MiaSoluzione"], ALGO_MAP["MiaSoluzione_NoWv"],ALGO_MAP["Alternativa"]],
         "confronto_benchmark_dataset.png", linear_y=True
     )
 

@@ -3,25 +3,20 @@
 # Complete experiment for the variable-mu oracle, same workflow as previous:
 #   1. Compile discretize_ts.cpp and experiment.cpp
 #   2. Discretize all files in sorted_datasets/ using ONLY discretize_ts.cpp
-#   3. Build TRF + the 4D oracle ONCE per dataset; run QUERIES nodes at every mu
-#   4. Plot one 2x3 PNG per dataset (first filter vs full sketch validation)
+#   3. Build the 4D oracle ONCE per dataset; run QUERIES nodes at every mu
+#   4. Plot first-MinHash filter results for each dataset
 # =============================================================================
 set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Global parameters; also overridable on the command line as ENV variables.
-TAU="${TAU:-0.25}"
-K="${K:-128}"
 NUM_QUERIES="${NUM_QUERIES:-0}"    # 0 = all nodes, sample without replacement
 MAX_INDEX_MB="${MAX_INDEX_MB:-6144}"
 SEED="${SEED:-42}"                 # query sampling, NOT the MinHash hash seed (fixed 42)
 MUS="${MUS:-0,1,5,10}"             # integers in discretized units
 SINGLE_NODE_ID="${SINGLE_NODE_ID:-}"
-RANKED_MU="${RANKED_MU:-}"
 PLOT_PAIRS="${PLOT_PAIRS:-0}"      # 0 = distinct candidate nodes (default)
-RANKED_LOG_Y="${RANKED_LOG_Y:-0}"
-VALIDATE="${VALIDATE:-0}"         # 1 = exhaustive check, ONLY for small datasets
 
 # 'path dataset_name mu_csv' (mu values are discrete integers).
 # Input produced by discretize_ts.cpp always ends in .txt even for .mtx sources.
@@ -43,7 +38,7 @@ BIN="$OUTPUT_DIR/oracle_exp"
 
 mkdir -p "$OUTPUT_DIR" "$PLOT_DIR" "$DISCRETIZED_DIR"
 echo '============================================================='
-echo ' ORACOLO 4D + TEMPORAL RANGE FOREST + VERIFICA SKETCH COMPLETI'
+echo ' ORACOLO 4D BASATO SULLA PRIMA COMPONENTE MINHASH'
 echo '============================================================='
 
 echo '[STEP 1/4] Compilazione...'
@@ -74,11 +69,10 @@ run_one() {
     return
   fi
   echo "  -------------------------------------------------------"
-  echo "  Dataset: $ds_name | mu=$mus | tau=$TAU | k=$K | query=$NUM_QUERIES"
+  echo "  Dataset: $ds_name | mu=$mus | query=$NUM_QUERIES"
   local options=(--dataset "$ds_path" --out "$CSV" --mus "$mus"
-                 --queries "$NUM_QUERIES" --k "$K" --tau "$TAU"
-                 --max-index-mb "$MAX_INDEX_MB" --seed "$SEED")
-  if [[ "$VALIDATE" == 1 ]]; then options+=(--validate); fi
+                 --queries "$NUM_QUERIES" --max-index-mb "$MAX_INDEX_MB"
+                 --seed "$SEED")
   "$BIN" "${options[@]}"
   ((success+=1))
 }
@@ -97,12 +91,10 @@ if ((success==0)); then
   exit 1
 fi
 
-echo '[STEP 4/4] Un grafico con 6 pannelli per ciascun dataset...'
+echo '[STEP 4/4] Grafici dei candidati del filtro per ciascun dataset...'
 plot_options=(--csv "$CSV" --out-dir "$PLOT_DIR" --seed "$SEED")
 if [[ -n "$SINGLE_NODE_ID" ]]; then plot_options+=(--single-node-id "$SINGLE_NODE_ID"); fi
-if [[ -n "$RANKED_MU" ]]; then plot_options+=(--ranked-mu "$RANKED_MU"); fi
 if [[ "$PLOT_PAIRS" == 1 ]]; then plot_options+=(--pairs); fi
-if [[ "$RANKED_LOG_Y" == 1 ]]; then plot_options+=(--ranked-log-y); fi
 python3 plot.py "${plot_options[@]}"
 
 echo '============================================================='

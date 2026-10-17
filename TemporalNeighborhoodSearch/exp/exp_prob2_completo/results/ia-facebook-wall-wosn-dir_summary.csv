@@ -1,6 +1,5 @@
 dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
-ia-facebook-wall-wosn-dir,BruteForce,161606,0,0.000419
-ia-facebook-wall-wosn-dir,MiaSoluzione,43.218,1447.03,9230.17
-ia-facebook-wall-wosn-dir,MiaSoluzione_NoWv,123.129,1439.37,24678.8
-ia-facebook-wall-wosn-dir,Alternativa,96.4565,1319.27,10420.5
-ia-facebook-wall-wosn-dir,Alternativa_NoWv,138.689,1311.62,24522.7
+ia-facebook-wall-wosn-dir,BruteForce,128886,0,0.000384
+ia-facebook-wall-wosn-dir,MiaSoluzione,35.064,1447.03,7933.89
+ia-facebook-wall-wosn-dir,MiaSoluzione_NoWv,82.9133,1439.37,20229.2
+ia-facebook-wall-wosn-dir,Alternativa,84.4199,1319.27,8404.79
