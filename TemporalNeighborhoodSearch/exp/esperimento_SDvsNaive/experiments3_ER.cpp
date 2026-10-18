@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
 
     double avg_speedup_overall = (evaluated_mu_count > 0) ? (sum_speedup / evaluated_mu_count) : 0.0;
     std::cout << "==================================================" << std::endl;
-    std::cout << " SPEEDUP MEDIO COMPLESSIVO (Naive / TRF): "
+    std::cout << " SPEEDUP MEDIO COMPLESSIVO (Naive / Oracolo): "
               << std::fixed << std::setprecision(2) << avg_speedup_overall << "x" << std::endl;
     std::cout << "==================================================" << std::endl;
 

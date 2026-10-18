@@ -74,7 +74,7 @@ def plot_results(
       markersize=7,
       linestyle='-',
       color='#1f77b4',
-      label='Temporal Range Forest (Query su Pre-indicizzato)',
+      label='Oracolo',
       linewidth=2.5,
   )
   ax.plot(
@@ -159,7 +159,7 @@ def plot_results(
 
 def parse_cli():
   parser = argparse.ArgumentParser(
-      description='Plot benchmark TRF vs Naive per intervalli temporali'
+      description='Plot benchmark Oracolo vs Naive per intervalli temporali'
   )
   parser.add_argument(
       'csv_file',
