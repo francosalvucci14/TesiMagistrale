@@ -1,5 +1,5 @@
-discretized_datasets/chess_year.txt	chess_year_comparison.png	node=5713	filter_highest_mean=15.132
-discretized_datasets/CollegeMsg.txt	CollegeMsg_comparison.png	node=468	filter_highest_mean=64.435
-discretized_datasets/SFHH-conf-sensor.txt	SFHH-conf-sensor_comparison.png	node=1828	filter_highest_mean=68.814
-discretized_datasets/ia-enron-email-dynamic.txt	ia-enron-email-dynamic_comparison.png	node=85428	filter_highest_mean=229.765
-discretized_datasets/ia-facebook-wall-wosn-dir.txt	ia-facebook-wall-wosn-dir_comparison.png	node=5456	filter_highest_mean=19.690
+discretized_datasets/chess_year.txt	chess_year_comparison.png	filter_highest_mean=15.132
+discretized_datasets/CollegeMsg.txt	CollegeMsg_comparison.png	filter_highest_mean=64.435
+discretized_datasets/SFHH-conf-sensor.txt	SFHH-conf-sensor_comparison.png	filter_highest_mean=68.814
+discretized_datasets/ia-enron-email-dynamic.txt	ia-enron-email-dynamic_comparison.png	filter_highest_mean=229.765
+discretized_datasets/ia-facebook-wall-wosn-dir.txt	ia-facebook-wall-wosn-dir_comparison.png	filter_highest_mean=19.690
