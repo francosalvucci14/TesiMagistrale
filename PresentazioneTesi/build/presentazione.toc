@@ -1,0 +1,6 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\beamer@sectionintoc {1}{Fondamenti e definizione dei problemi}{3}{0}{1}
+\beamer@sectionintoc {2}{Soluzioni proposte}{9}{0}{2}
+\beamer@sectionintoc {3}{Valutazione sperimentale}{17}{0}{3}
+\beamer@sectionintoc {4}{Conclusioni e sviluppi futuri}{28}{0}{4}
