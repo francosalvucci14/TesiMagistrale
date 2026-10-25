@@ -1,0 +1,6 @@
+\babel@toc {italian}{}\relax 
+\beamer@sectionintoc {1}{Contesto e problemi}{2}{0}{1}
+\beamer@sectionintoc {2}{Variante 1: soluzione tecnica}{13}{0}{2}
+\beamer@sectionintoc {3}{Variante 2: filtro geometrico}{31}{0}{3}
+\beamer@sectionintoc {4}{Conclusioni e sviluppi futuri}{38}{0}{4}
+\beamer@sectionintoc {5}{Conclusioni}{39}{0}{5}

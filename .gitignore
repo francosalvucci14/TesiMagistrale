@@ -1,7 +1,6 @@
 Other/
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/sorted_datasets
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/discretized_datasets
-/TemporalNeighborhoodSearch/exp/exp_prob2_completo/bck_results
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/exp_opt
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/normalize_ts
 /TemporalNeighborhoodSearch/exp/exp_prob2_completo/discretize_ts
@@ -15,4 +14,7 @@ Other/
 /TemporalNeighborhoodSearch/exp/oracle_experiment/results/all_datasets.csv
 presentazione
 venv/
-PresentazioneTesi/
+/PresentazioneTesi/presentazione
+/PresentazioneTesi/modifiche-pres
+/PresentazioneTesi/presentazione_tor_vergata.tex
+/PresentazioneTesi/Discorso.md
