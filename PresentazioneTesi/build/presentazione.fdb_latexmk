@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1792420269.18211 "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione.tex" "build/presentazione.pdf" "presentazione" 1792420272.18907 0
-  "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione.tex" 1792420268.99323 35605 dbe23da598a2b1a8a3bd1e2d8af60c52 ""
+["pdflatex"] 1792751593.04056 "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione.tex" "build/presentazione.pdf" "presentazione" 1792751596.09365 0
+  "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione.tex" 1792751592.78388 35266 e9ef913d248c44d9984877360341ecff ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1202520719 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1202520719 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -320,16 +320,18 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1777593600 43785 66587115382950aca692b5f6e3c2fb74 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1791620760 5572053 e518821a04c16d896352b86436457e46 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1791963196 3520300 c80c9e111336cb34fc1e59a2e3815252 ""
-  "build/presentazione.aux" 1792420272.06527 5981 e3d05a8a2201938685d88364e2a3fe0d "pdflatex"
-  "build/presentazione.nav" 1792420272.06765 3704 d2f4eaa7d2a1e5ce3d0c5524037215ad "pdflatex"
-  "build/presentazione.out" 1792420272.06667 739 df2f0abbef417904c83387df4478f6d4 "pdflatex"
-  "figures/candidates_college.pdf" 1792401910 709135 8f1ff22bd7602f1219afce4b387b4fac ""
-  "figures/candidates_enron.pdf" 1792401910 709138 efaad40511efa665cefe6ff019d6c3b6 ""
+  "build/presentazione.aux" 1792751595.96274 5981 91837816143f1998483ed4e03e3f7c50 "pdflatex"
+  "build/presentazione.nav" 1792751595.96392 3704 d2f4eaa7d2a1e5ce3d0c5524037215ad "pdflatex"
+  "build/presentazione.out" 1792751595.96392 739 df2f0abbef417904c83387df4478f6d4 "pdflatex"
+  "figures/CollegeMsg_comparison.pdf" 1792663606.34712 23551 695fa6a956096a1bb0bad30825fd556a ""
+  "figures/benchmark_baseline.png" 1792660526 276793 6ff0f67b52447fc9d1c5b2d35032ce0b ""
+  "figures/benchmark_strategie.png" 1792660534 213941 b9e5290f2260da89ac6685a08f3a7063 ""
+  "figures/ia-enron-email-dynamic_comparison.pdf" 1792663620.3433 23950 b6addaf64192e96499858a5132878075 ""
   "figures/oracle_er.pdf" 1792401910 728966 9a193af5d8a29a1b80ab1703cbd07bd2 ""
   "figures/oracle_synthetic.pdf" 1792401910 728968 ab33a53b9c36310551bcc7cb2ceea325 ""
   "figures/pruning_enron.pdf" 1792401910 2364168 38be9c60f826b893c26491f671400a19 ""
   "figures/pruning_sfhh.pdf" 1792401910 2364168 c4f80cbcea25b0c85b3628cf0fc66638 ""
-  "presentazione.tex" 1792420268.99323 35605 dbe23da598a2b1a8a3bd1e2d8af60c52 ""
+  "presentazione.tex" 1792751592.78388 35266 e9ef913d248c44d9984877360341ecff ""
   (generated)
   "build/presentazione.aux"
   "build/presentazione.log"

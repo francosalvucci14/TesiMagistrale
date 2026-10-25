@@ -2,8 +2,10 @@
 """Grafici leggibili dei candidati del filtro MinHash, uno per dataset.
 
 Compatibile con i CSV e gli argomenti dello script originale.
-La scala Y e' scelta indipendentemente nei due pannelli, per non nascondere
-piccole variazioni su valori assoluti elevati.
+Viene mostrata soltanto la media dei candidati sui nodi sorgente,
+in funzione dei valori di mu testati.
+Il picco della media viene evidenziato e confrontato con il numero di
+vertici dell'intero dataset (colonna "vertices" del CSV).
 """
 
 import argparse
@@ -19,6 +21,16 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+
+# Presentazione per tesi: grafici grandi e leggibili.
+plt.rcParams.update({
+    "font.size": 20,
+    "axes.titlesize": 25,
+    "axes.labelsize": 22,
+    "xtick.labelsize": 18,
+    "ytick.labelsize": 18,
+    "pdf.fonttype": 42,
+})
 
 
 def safe_name(path):
@@ -119,9 +131,9 @@ def set_y_axis(ax, data, mode='auto', integer=False):
 
 def add_panel(ax, mus, data, title, y_label, y_mode, *, integer=False):
     x = np.arange(len(mus))  # punti equidistanti: mu selezionati, NON asse numerico
-    line, = ax.plot(x, data, marker='o', linewidth=2.2, markersize=6,
+    line, = ax.plot(x, data, marker='o', linewidth=3.2, markersize=9,
                     zorder=3)
-    ax.axhline(data[0], linestyle=':', linewidth=1.3, alpha=.55,
+    ax.axhline(data[0], linestyle=':', linewidth=2.0, alpha=.55,
                color=line.get_color(), zorder=2)
 
     scale_note, digits = set_y_axis(ax, data, y_mode, integer=integer)
@@ -129,9 +141,9 @@ def add_panel(ax, mus, data, title, y_label, y_mode, *, integer=False):
     delta = float(data[-1] - data[0])
     info = (f'Min {format_number(lo, digits)}  ·  Max {format_number(hi, digits)}'
             f'  ·  Δ primo→ultimo {format_number(delta, digits)} ({percentage_delta(data)})')
-    ax.set_title(title + '\n' + info, fontsize=11.5, pad=14, linespacing=1.45)
-    ax.set_ylabel(y_label, fontsize=11)
-    ax.set_xlabel('μ — valori testati (intervalli grafici equidistanti)', fontsize=10)
+    ax.set_title(title + '\n' + info, fontsize=22, pad=18, linespacing=1.45)
+    ax.set_ylabel(y_label, fontsize=21)
+    ax.set_xlabel('μ — valori testati (intervalli grafici equidistanti)', fontsize=19)
 
     max_ticks = 14
     tick_ids = np.arange(len(mus)) if len(mus) <= max_ticks else np.unique(
@@ -139,14 +151,21 @@ def add_panel(ax, mus, data, title, y_label, y_mode, *, integer=False):
     ax.set_xticks(tick_ids)
     ax.set_xticklabels([str(mus[i]) for i in tick_ids])
     ax.set_xlim(-0.45, len(mus) - .55 if len(mus) > 1 else .45)
-    ax.tick_params(axis='x', rotation=35, labelsize=9)
-    ax.tick_params(axis='y', labelsize=9)
+    ax.tick_params(axis='x', rotation=35, labelsize=18)
+    ax.tick_params(axis='y', labelsize=18)
     ax.grid(True, axis='y', linestyle='--', linewidth=.8, alpha=.32)
     ax.grid(True, axis='x', linestyle=':', linewidth=.7, alpha=.16)
     ax.set_axisbelow(True)
-    ax.text(0.0, -0.28, scale_note + ' · linea tratteggiata = valore al primo μ',
-            transform=ax.transAxes, ha='left', va='top', fontsize=9,
-            color='#555555', clip_on=False)
+    # Cerchio ben riconoscibile anche in stampa: evidenzia il valore massimo
+    # della MEDIA visualizzata. In caso di parità, seleziona il primo mu.
+    max_index = int(np.argmax(data))
+    ax.scatter(x[max_index], data[max_index], s=480, facecolors='none',
+               edgecolors='#c12c35', linewidths=3.0, zorder=6)
+    ax.scatter(x[max_index], data[max_index], s=100,
+               color='#c12c35', edgecolors='white', linewidths=1.3, zorder=7)
+    # ax.text(0.0, -0.19, scale_note + ' · linea tratteggiata = valore al primo μ',
+    #         transform=ax.transAxes, ha='left', va='top', fontsize=17,
+    #         color='#555555', clip_on=False)
 
     # Etichette puntuali: sempre tutte su griglie piccole; campionamento su griglie grandi.
     if len(mus) <= 12:
@@ -160,9 +179,13 @@ def add_panel(ax, mus, data, title, y_label, y_mode, *, integer=False):
         bottom, _ = ax.get_ylim()
         sign = 1 if (index % 2 == 0 or value <= bottom + (ax.get_ylim()[1] - bottom) * .035) else -1
         ax.annotate(format_number(value, digits), (x[index], value),
-                    xytext=(0, 9 * sign), textcoords='offset points',
+                    xytext=(0, (22 if index == max_index else 15) * sign),
+                    textcoords='offset points',
                     ha='center', va='bottom' if sign > 0 else 'top',
-                    fontsize=8.6, color=line.get_color(), zorder=5,
+                    fontsize=18 if index == max_index else 16,
+                    fontweight='bold' if index == max_index else 'normal',
+                    color='#a5202b' if index == max_index else line.get_color(),
+                    zorder=8,
                     clip_on=False)
 
 
@@ -172,9 +195,6 @@ def plot_dataset(dataset, rows, dest, seed, forced_node=None, pairs=False,
     mus = sorted({int(row['mu']) for row in rows})
     if not names or not mus:
         raise ValueError('Empty dataset queries: ' + dataset)
-    if forced_node is not None and forced_node not in names:
-        raise ValueError(f'Node {forced_node!r} does not appear among queries for {dataset}')
-    node = forced_node if forced_node is not None else random.Random(seed).choice(names)
     lookup = {(row['node_id'], int(row['mu'])): row for row in rows}
     if len(lookup) != len(rows):
         raise ValueError('Repeated (node_id,mu) rows detected for ' + dataset)
@@ -187,49 +207,70 @@ def plot_dataset(dataset, rows, dest, seed, forced_node=None, pairs=False,
     if not np.isfinite(values).all() or (values < 0).any():
         raise ValueError(f'Invalid candidate counts in {dataset}')
     means = values.mean(axis=0)
-    node_idx = names.index(node)
     n_vertices = rows[0].get('vertices', '?')
     count_desc = 'Coppie (u,t)' if pairs else 'Nodi distinti'
 
-    fig, axes = plt.subplots(1, 2, figsize=(17.5, 6.5))
-    add_panel(axes[0], mus, values[node_idx], f'Nodo sorgente v = {node}',
-              f'{count_desc} candidati', y_scale, integer=True)
-    add_panel(axes[1], mus, means, f'Media su {len(names):,} nodi sorgente'.replace(',', '.'),
+    fig, ax = plt.subplots(figsize=(16, 10))
+    add_panel(ax, mus, means, f'Media su {len(names):,} nodi sorgente'.replace(',', '.'),
               f'Media {count_desc.lower()} candidati', y_scale)
 
     title = (f'{Path(dataset).name}   ·   n = {n_vertices}   ·   Q = {format_number(len(names))}\n'
              'Candidati del filtro preliminare (prima componente MinHash)')
-    fig.suptitle(title, fontsize=15, fontweight='semibold', y=.99)
+    fig.suptitle(title, fontsize=27, fontweight='semibold', y=.99)
 
-    # Rendere leggibile anche la portata del filtro rispetto alla dimensione del grafo.
-    note = ('Ogni punto indica il numero di candidati per il valore μ specificato; '
-            'l’asse X usa spaziatura uniforme fra i valori campionati.')
-    if not pairs:
+    fig.subplots_adjust(left=.12, right=.96, top=.77, bottom=.28)
+
+    peak_index = int(np.argmax(means))
+    peak_mean = float(means[peak_index])
+    peak_mu = mus[peak_index]
+    peak_digits = auto_digits(means)
+
+    # Per i nodi distinti il denominatore corretto e' n, non Q (nodi sorgente).
+    # Le coppie (u,t) non sono invece confrontabili con una cardinalita' di nodi.
+    if pairs:
+        peak_note = (f'PICCO DELLA MEDIA   ·   μ = {peak_mu}   ·   '
+                     f'{format_number(peak_mean, peak_digits)} coppie (u,t)')
+    else:
         try:
             total_nodes = int(n_vertices)
-            if total_nodes > 0:
-                shares = 100 * means / total_nodes
-                pct_digits = 2 if shares.max() >= .1 else (4 if shares.max() >= .001 else 6)
-                note += (f'   ·   Media candidati / n: '
-                         f'{shares.min():.{pct_digits}f}–{shares.max():.{pct_digits}f}%'.replace('.', ','))
+            if total_nodes <= 0:
+                raise ValueError('Numero di vertici non positivo')
         except (TypeError, ValueError):
-            pass
-    fig.text(.5, .025, note, ha='center', va='center', fontsize=9.4, color='#555555')
-    fig.subplots_adjust(left=.065, right=.985, top=.77, bottom=.24, wspace=.20)
+            peak_note = (f'PICCO DELLA MEDIA   ·   μ = {peak_mu}   ·   '
+                         f'{format_number(peak_mean, peak_digits)} candidati medi'
+                         '   ·   % non disponibile: n mancante')
+        else:
+            share = 100.0 * peak_mean / total_nodes
+            pct_digits = 2 if share >= .1 else (3 if share >= .01 else 4)
+            peak_note = (f'PICCO DELLA MEDIA   ·   μ = {peak_mu}   ·   '
+                         f'{format_number(peak_mean, peak_digits)} candidati medi'
+                         f'   ·   {format_number(share, pct_digits)}% '
+                         f'dei {format_number(total_nodes)} nodi')
+
+    # Box nello spazio sotto l'asse X: non copre linee o etichette dei punti.
+    fig.text(.54, .16, peak_note, ha='center', va='center',
+             fontsize=19, fontweight='bold', color='#8e1c26',
+             bbox={'boxstyle': 'round,pad=.65', 'facecolor': '#fff0f1',
+                   'edgecolor': '#c12c35', 'linewidth': 1.2})
 
     dest.mkdir(parents=True, exist_ok=True)
     out = dest / (safe_name(dataset) + '_comparison.png')
-    fig.savefig(out, dpi=180, facecolor='white')
+    # Salva in entrambi i formati. Il PDF mantiene il testo vettoriale.
+    # Il padding aggiuntivo include interamente il bordo del box inferiore.
+    fig.savefig(out.with_suffix('.pdf'), dpi=180, facecolor='white',
+                bbox_inches='tight', pad_inches=.45)
+    fig.savefig(out, dpi=150, facecolor='white',
+                bbox_inches='tight', pad_inches=.45)
     plt.close(fig)
-    return out, node, float(means.max())
+    return out, float(means.max())
 
 
 def main():
     parser = argparse.ArgumentParser(description='Candidate plots, with adaptive Y axes for all datasets.')
     parser.add_argument('--csv', default='results/all_datasets.csv')
     parser.add_argument('--out-dir', default='results/plots')
-    parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--single-node-id', type=str, default=None)
+    parser.add_argument('--seed', type=int, default=42, help="Compatibilità: ignorato (nessun nodo singolo viene selezionato)")
+    parser.add_argument('--single-node-id', type=str, default=None, help='Compatibilità: ignorato (si mostra soltanto la media)')
     parser.add_argument('--pairs', action='store_true', help='Plot candidate pairs instead of distinct nodes')
     parser.add_argument('--y-scale', choices=('auto', 'zero', 'zoom', 'log'), default='auto',
                         help='Y-axis: auto (default), start at zero, zoom to variations or logarithmic')
@@ -239,11 +280,11 @@ def main():
     grouped = read_data(args.csv)
     summary = []
     for dataset, rows in grouped.items():
-        out, v, highest_filter_mean = plot_dataset(
+        out, highest_filter_mean = plot_dataset(
             dataset, rows, dest, args.seed, args.single_node_id,
             args.pairs, args.y_scale)
         print('Created:', out)
-        summary.append(f'{dataset}\t{out.name}\tnode={v}\tfilter_highest_mean={highest_filter_mean:.3f}')
+        summary.append(f'{dataset}\t{out.name}\tfilter_highest_mean={highest_filter_mean:.3f}')
     dest.mkdir(parents=True, exist_ok=True)
     (dest / 'plot_summary.txt').write_text('\n'.join(summary) + '\n', encoding='utf-8')
 

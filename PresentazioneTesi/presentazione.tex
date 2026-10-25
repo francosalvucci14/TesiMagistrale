@@ -1,8 +1,8 @@
 % Presentazione della tesi magistrale - Franco Salvucci
 % Template: LaTeX Beamer, formato 16:9.
 % Compilazione: latexmk -pdf presentazione.tex
-% Tutti i grafici sperimentali incorporati in figures/ sono ritagli vettoriali
-% della tesi main(2).pdf (figure 7, 8, 10, 11). Gli altri diagrammi sono TikZ.
+% I grafici sperimentali in figures/ includono sia estratti vettoriali
+% della tesi sia i benchmark PNG; gli altri diagrammi sono TikZ.
 % Per sostituire una figura: cambiare il percorso nel relativo \includegraphics.
 \documentclass[aspectratio=169,10pt]{beamer}
 \usepackage[T1]{fontenc}
@@ -29,6 +29,9 @@
 \definecolor{gold}{HTML}{D6A04D}
 \definecolor{coral}{HTML}{CD686B}
 \definecolor{pale}{HTML}{F9FBFE}
+\definecolor{chartorange}{HTML}{FF7F0E}
+\definecolor{chartgreen}{HTML}{2CA02C}
+\definecolor{chartred}{HTML}{D62728}
 \setbeamercolor{normal text}{fg=ink,bg=white}
 \setbeamercolor{frametitle}{fg=ink,bg=white}
 \setbeamercolor{alerted text}{fg=coral}
@@ -53,6 +56,10 @@
 \newcommand{\punch}[1]{{\centering\color{teal}\bfseries\normalsize #1\par}}
 \newcommand{\chip}[1]{\tikz[baseline=(n.base)]\node[rounded corners=3pt,fill=ice,inner xsep=9pt,inner ysep=4pt] (n) {\small\bfseries #1};}
 \newcommand{\statbox}[2]{\tikz[baseline=(n.base)]\node[fill=cloud,rounded corners=6pt,inner sep=6pt](n){\begin{minipage}{2.8cm}\centering{\Large\bfseries\color{teal}#1}\\[1pt]{\scriptsize\color{ink}#2}\end{minipage}};}
+\newcommand{\benchlegend}{{\scriptsize
+  {\color{chartorange}\rule{.16cm}{.12cm}}\,LSH+$W$\hspace{.48cm}
+  {\color{chartgreen}\rule{.16cm}{.12cm}}\,LSH--$W$\hspace{.48cm}
+  {\color{chartred}\rule{.16cm}{.12cm}}\,Alt+$W$}}
 \newcommand{\panel}[2]{%
  \begin{tikzpicture}\node[draw=rulegray,fill=cloud,rounded corners=7pt,inner sep=9pt,align=center,text width=#1] {#2};\end{tikzpicture}}
 \newcommand{\sectslide}[3]{%
@@ -103,9 +110,9 @@
 \end{tikzpicture}
 \vspace{.78cm}
 {\color{bright}\large\bfseries TESI DI LAUREA MAGISTRALE IN INFORMATICA}\par\vspace{.60cm}
-{\color{white}\fontsize{26}{32}\selectfont\bfseries Il problema del\\[2pt]Neighborhood Search\\[2pt]su grafi temporali}\par\vspace{.75cm}
-{\color{white}\large Franco Salvucci}\par\vspace{.20cm}
-{\color{white!73}\small Relatore: Prof. Luciano Gualà \quad Correlatore: Dott. Alessandro Straziota}\par
+{\color{white}\fontsize{26}{32}\selectfont\bfseries Il Problema del\\[2pt]Neighborhood Search\\[2pt]su Grafi Temporali}\par\vspace{.75cm}
+{\color{white}\large Franco Salvucci - \textit{0368692}}\par\vspace{.20cm}
+{\color{white!73}\small \textbf{Relatore}: Prof. Luciano Gualà \quad \textbf{Correlatore}: Dott. Maestro Alessandro Straziota}\par
 \vfill
 {\color{white!73}\small Università degli Studi di Roma ``Tor Vergata''\hfill A.A. 2025/2026}
 \end{frame}}
@@ -114,10 +121,10 @@
 % 02. ROADMAP. Titoli senza atti e senza indicazioni di durata.
 % ---------------------------------------------------------------------------
 \begin{frame}[t]{Percorso della presentazione}
-\vspace{.3cm}
+\vspace{2cm}
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm]
-\foreach \x/\num/\texta/\textb in {1.45/01/{Fondamenti}/{Definizioni e preliminari},5.3/02/{Soluzioni proposte}/{Le due varianti su grafi temporali},9.13/03/{Esperimenti}/{Risultati e confronti},12.96/04/{Conclusioni}/{Contributi e sviluppi}}{
+\foreach \x/\num/\texta/\textb in {1.45/01/{Contesto}/{Definizioni e preliminari},5.3/02/{Soluzioni proposte}/{Analisi e bound ottenuti},9.13/03/{Esperimenti}/{Risultati e confronti},12.96/04/{Conclusioni}/{Contributi e sviluppi futuri}}{
   \node[draw=rulegray,fill=cloud,rounded corners=6pt,minimum width=3.22cm,minimum height=2.12cm,align=center] at (\x,3.88) {};
   \node[text=teal,font=\bfseries\large] at (\x,4.42) {\num};
   \node[text=ink,font=\bfseries\small] at (\x,3.80) {\texta};
@@ -135,8 +142,8 @@
 \vspace{-.03cm}
 \begin{center}
 \begin{minipage}{13.8cm}\centering
-\small \textbf{Formulazione del problema}: Dati $G=(V,E)$, $S\subseteq V$, una soglia $\tau\in[0,1]$ e una funzione di similarità $\sigma:2^V\times2^V\to[0,1]$ trovare un nodo $u\in V\setminus S$ tale che\\[5pt]
-{\large\bfseries\color{teal} $\sigma(S,N(u))\ge\tau$.}
+\small \textbf{Definizione del problema}: Dati $G=(V,E)$ un grafo, $S\subseteq V$ un sottoinsieme di nodi, $\tau\in[0,1]$ un valore soglia e $\sigma:2^V\times2^V\to[0,1]$ una funzione di similarità, trovare un nodo $u\in V$ tale che\\[5pt]
+{\large\bfseries\color{teal} \chip{$\sigma(S,N(u))\ge\tau$}}
 \end{minipage}
 \end{center}
 \vspace{.16cm}
@@ -155,12 +162,14 @@
     \draw[ink!50,thick] (u)--(q\nam);}
 \end{tikzpicture}
 \vspace{-.06cm}
-\begin{center}
-  \chip{$S=\{a,b,c,d\}$}\hspace{.32cm}
-  \chip{$N(u)=\{b,c,d,e\}$}
-\end{center}
+% \begin{center}
+%   \chip{$S=\{a,b,c,d\}$}\hspace{.32cm}
+%   \chip{$N(u)=\{b,c,d,e\}$}
+% \end{center}
 \vspace{.08cm}
-\smallnote{$\sigma$ indica una misura di similarità generica: l'obiettivo è cercare un nodo, non necessariamente confrontare due vicinati.}
+\begin{center}
+  \smallnote{$\sigma$ indica una misura di similarità generica.}
+\end{center}
 \end{frame}
 
 % 05 — Jaccard come scelta concreta di sigma, poi MinHash
@@ -184,8 +193,8 @@
   \end{scope}
   \draw[teal,line width=1.2pt] (2.75,2.71) circle (1.68cm);
   \draw[gold,line width=1.2pt] (4.37,2.71) circle (1.68cm);
-  \node[font=\small\bfseries,text=teal] at (1.91,4.25) {$S$};
-  \node[font=\small\bfseries,text=gold!70!black] at (5.20,4.25) {$N(u)$};
+  \node[font=\small\bfseries,text=teal] at (1.91,4.35) {$S$};
+  \node[font=\small\bfseries,text=gold!70!black] at (5.55,4.25) {$N(u)$};
   \node[font=\large\bfseries] at (1.94,2.72) {$a$};
   \node[font=\large\bfseries] at (5.20,2.72) {$e$};
   \node[font=\large\bfseries] at (3.58,3.37) {$b$};
@@ -236,29 +245,54 @@ $\displaystyle J(S,N(u))=\frac{3}{5}=0.6$\\[5pt]
 \begin{minipage}{5.9cm}\centering\scriptsize\color{muted}$k=br$; $P(s)=1-(1-s^r)^b$.\end{minipage}
 \end{columns}
 \vspace{.07cm}
-\small Un'ulteriore formulazione del problema prevede l'utilizzo di un singolo nodo $v$ al posto di $S$. Per semplicità di trattazione, da qui in avanti useremo $S={v}$
+\small È facile notare che la soluzione proposta funziona sia con $S$ sia con un singolo nodo $v$. Per semplicità di trattazione, da qui in avanti useremo $S={v}$
 \end{frame}
 
 % 06
-\begin{frame}[t]{Grafi temporali: il vicinato dipende dall'intervallo}
-\vspace{.00cm}
-\centering
-\begin{tikzpicture}[x=.93cm,y=1cm]
-\foreach \y/\lab in {5.0/{(v,a)},3.88/{(v,b)},2.76/{(v,c)}}{\node[anchor=east,font=\small] at (2.1,\y) {\lab};\draw[rulegray,thick] (2.3,\y)--(14.5,\y);}
-\fill[teal!11] (6.0,2.27) rectangle (10.0,5.45);
-\draw[teal,very thick] (6.0,5.48)--(10.0,5.48);
-\foreach \x in {3,4,8,12}{\fill[teal] (\x,5.0) circle (3.5pt);}
-\foreach \x in {2.5,6.5,7.4,11}{\fill[gold] (\x,3.88) circle (3.5pt);}
-\foreach \x in {5,9.5,13}{\fill[coral] (\x,2.76) circle (3.5pt);}
-\foreach \x in {3,...,14}{\draw[muted!40] (\x,2.0)--(\x,2.14);\node[font=\tiny,text=muted] at (\x,1.82){\x};}
-\node[font=\small,above,text=teal] at (8,5.49) {$I=[t,t+\mu]$};
-\end{tikzpicture}
-\vspace{.08cm}
+\begin{frame}[t]{Grafi temporali: attività e vicinati}
+\vspace{.03cm}
+{\small In un \textbf{grafo temporale} $\mathcal G=(V,E,\lambda)$, ogni arco $e\in E$ è presente
+negli istanti $\lambda(e)$. Gli \textbf{archi temporali} sono le triple $(u,w,t)\in\mathcal E$,
+con $t\in\lambda((u,w))$.\par}
+\vspace{.06cm}
 \begin{center}
-\chip{$N^I(v)=\bigcup_{t\in I}N^t(v)$}\qquad
-\chip{$\Lambda(v)=\{t:\;v\text{ è attivo in }t\}$}
+\begin{tikzpicture}[x=.94cm,y=.72cm]
+  % Due finestre temporali: gli archi attivi cambiano al variare dell'intervallo.
+  \fill[teal!11,rounded corners=2pt] (5.6,.52) rectangle (9.4,4.14);
+  \fill[gold!16,rounded corners=2pt] (9.6,.52) rectangle (13.4,4.14);
+  \node[font=\small\bfseries,text=teal] at (7.5,4.38) {$I=[6,9]$};
+  \node[font=\small\bfseries,text=gold!85!black] at (11.5,4.38) {$J=[10,13]$};
+  \foreach \y/\lab in {3.5/a,2.55/b,1.6/c}{
+    \node[anchor=east,font=\small] at (1.68,\y) {$(v,\lab)$};
+    \draw[rulegray,thick] (1.9,\y)--(13.62,\y);
+  }
+  % Ogni punto rappresenta una presenza dell'arco nel tempo.
+  \foreach \x in {2,7,12}{\fill[teal] (\x,3.5) circle (3.7pt);}
+  \foreach \x in {3,8}{\fill[gold] (\x,2.55) circle (3.7pt);}
+  \foreach \x in {5,11}{\fill[coral] (\x,1.6) circle (3.7pt);}
+  \draw[-{Stealth[length=2mm]},muted,thick] (1.85,.64)--(13.9,.64);
+  \foreach \x in {2,...,13}{
+    \draw[muted!65] (\x,.56)--(\x,.73);
+    \node[font=\scriptsize,text=muted] at (\x,.31) {\x};
+  }
+  \node[font=\scriptsize,text=muted,anchor=west] at (13.92,.65) {$t$};
+\end{tikzpicture}
 \end{center}
-\smallnote{Un arco temporale è rappresentato dalla tripla $(u,v,t)$; il vicinato può cambiare da una finestra all'altra.}
+\vspace{-.31cm}
+\begin{columns}[T,onlytextwidth]
+\column{.49\textwidth}
+{\small\bfseries\color{teal} Istanti di attività di $v$}\par
+\vspace{.05cm}
+{\small $\Lambda(v)=\{t:\exists u,\,(v,u,t)\in\mathcal E\}$}\par
+\vspace{.07cm}
+{\small Nell'esempio: $\{2,3,5,7,8,11,12\}$.}
+\column{.49\textwidth}
+{\small\bfseries\color{teal} Vicinato nell'intervallo $I$}\par
+\vspace{.05cm}
+{\small $N^I(v)=\{u:\exists t\in I,\,(v,u,t)\in\mathcal E\}$}\par
+\vspace{.07cm}
+{\small Nell'esempio: $N^I(v)=\{a,b\}$, $N^J(v)=\{a,c\}$.}
+\end{columns}
 \end{frame}
 
 % 07
@@ -282,34 +316,6 @@ $\displaystyle J(S,N(u))=\frac{3}{5}=0.6$\\[5pt]
 
 % ---------------------------------------------------------------------------
 \sectslide{02}{Soluzioni proposte}{Pruning, indicizzazione LSH modificata e oracolo $\mathcal O$}
-
-
-% Prima gli esiti teorici, poi la costruzione della soluzione.
-\begin{frame}[t]{Variante 1: risultati teorici della soluzione}
-\vspace{.06cm}
-\begin{center}\small $\mu$ è fissata in preprocessing; $w_v=|W(v)|$, $m_v=|\Lambda(v)|$,\\[3pt]
-$C_v=\sum_{t\in W(v)}|C(v,t)|$ è il totale dei candidati esaminati.\end{center}
-\vspace{.18cm}
-\begin{columns}[T,onlytextwidth]
-\column{.33\textwidth}
-\centering\panel{4.18cm}{\textbf{Building time}\\[12pt]
-$\displaystyle O\!\left(\sum_{v\in V}w_v(k\log m_v+b)\right)$\\[8pt]
-\scriptsize Costruzione indice LSH}
-\column{.33\textwidth}
-\centering\panel{4.18cm}{\textbf{Spazio}\\[12pt]
-$\displaystyle O\!\left(b\sum_{v\in V}w_v\right)$\\[8pt]
-\scriptsize Memoria indice LSH}
-\column{.33\textwidth}
-\centering\panel{4.18cm}{\textbf{Query time}\\[12pt]
-$\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[8pt]
-\scriptsize Per una query su $v$}
-\end{columns}
-\vspace{.32cm}
-\centering
-\chip{$\displaystyle w_v\le\min\{T-\mu,(\mu+1)|\Lambda(v)|\}$}
-\vspace{.30cm}
-\begin{center}\smallnote{Bound dell'indice LSH con pruning; la costruzione e lo spazio dell'oracolo $\mathcal O$ sono contabilizzati separatamente.}\end{center}
-\end{frame}
 
 % Due componenti prima dei dettagli applicativi.
 \begin{frame}[t]{Variante 1: due ingredienti fondamentali}
@@ -340,6 +346,33 @@ $\operatorname{Sketch}(N^{[t,t+\mu]}(v))$\\[8pt]
 \draw[arr](query)--(oracle);\draw[arr](oracle)--(lsh);\draw[arr](lsh)--(verify);
 \end{tikzpicture}
 \end{center}
+\end{frame}
+
+% Prima gli esiti teorici, poi la costruzione della soluzione.
+\begin{frame}[t]{Variante 1: risultati teorici della soluzione}
+\vspace{.06cm}
+\begin{center}\small $\mu$ è fissata in preprocessing; $w_v=|W(v)|$, $m_v=|\Lambda(v)|$,\\[3pt]
+$C_v=\sum_{t\in W(v)}|C(v,t)|$ è il totale dei candidati esaminati.\end{center}
+\vspace{.18cm}
+\begin{columns}[T,onlytextwidth]
+\column{.33\textwidth}
+\centering\panel{4.18cm}{\textbf{Building time}\\[12pt]
+$\displaystyle O\!\left(\sum_{v\in V}w_v(k\log m_v+b)\right)$\\[8pt]
+\scriptsize Costruzione indice LSH}
+\column{.33\textwidth}
+\centering\panel{4.18cm}{\textbf{Spazio}\\[12pt]
+$\displaystyle O\!\left(b\sum_{v\in V}w_v\right)$\\[8pt]
+\scriptsize Memoria indice LSH}
+\column{.33\textwidth}
+\centering\panel{4.18cm}{\textbf{Query time}\\[12pt]
+$\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[8pt]
+\scriptsize Per una query su $v$}
+\end{columns}
+\vspace{.32cm}
+\centering
+\chip{$\displaystyle w_v\le\min\{T-\mu,(\mu+1)|\Lambda(v)|\}$}
+\vspace{.30cm}
+\begin{center}\smallnote{Bound dell'indice LSH con pruning; la costruzione e lo spazio dell'oracolo $\mathcal O$ sono contabilizzati separatamente.}\end{center}
 \end{frame}
 
 % 09
@@ -401,8 +434,8 @@ $\operatorname{Sketch}(N^{[t,t+\mu]}(v))$\\[8pt]
 \foreach \nam/\x/\idx in {c/1/1,d/3/2,e/5.5/3,f/7.5/4}{\node[treen,minimum width=1.35cm](\nam) at (\x,2.02) {$S_{\idx}$};}
 \foreach \aa/\bb in {r/a,r/b,a/c,a/d,b/e,b/f}{\draw[ink!45,thick](\aa)--(\bb);}
 \node[draw=teal,very thick,rounded corners=6pt,fit=(d),inner sep=4pt] {};
-\node[draw=teal,very thick,rounded corners=6pt,fit=(e),inner sep=4pt] {};
-\node[font=\small,align=center,text=teal] at (4.25,.91) {Query $[t_2,t_3]$: merge di $S_2$ e $S_3$};
+\node[draw=teal,very thick,rounded corners=6pt,fit=(b),inner sep=4pt] {};
+\node[font=\small,align=center,text=teal] at (4.25,.91) {Query $[t_2,t_4]$: merge di $S_2$ e $S_{3,4}$};
 \end{tikzpicture}
 \column{.41\textwidth}
 \vspace{.55cm}
@@ -450,7 +483,7 @@ Con $1$-MinHash, una RMQ recupera lo sketch in $O(1)$ (spazio $O(T)$ per nodo).
 \begin{frame}[t]{Variante 2: bound dell'oracolo sul primo MinHash}
 \vspace{-.01cm}
 \begin{center}
-\small $N\le nT$: rettangoli indicizzati; $k_v(\mu)$: rettangoli rilevanti per la query;\\[3pt]
+\small $N\le nT$: rettangoli indicizzati; $k_v(\mu)\le T$: rettangoli rilevanti per la query;\\[3pt]
 $M=|C(v,\mu)|$: coppie nodo--finestra riportate dal filtro.
 \end{center}
 \vspace{.17cm}
@@ -497,11 +530,11 @@ $\displaystyle O\bigl(k_v(\mu)\log^3 N+M\bigr)$\\[8pt]
 \end{tikzpicture}
 \column{.34\textwidth}
 \centering
-\panel{3.95cm}{\textbf{Parametri principali}\\[6pt]\small$\tau=0.35$\\$k=256$\\$b=8,\ r=32$}
+\panel{3.95cm}{\textbf{Parametri principali}\\[6pt]\small$\tau=0.35$\\$k=128$\\$b=8,\ r=16$}
 \vspace{.18cm}
 \panel{3.95cm}{\textbf{Strategie a confronto}\\[6pt]\small BF\\LSH+$W$\\LSH--$W$\\Alt+$W$}
 \vspace{.17cm}
-\end{columns}\par\vspace{-0.07cm}\smallnote{Fino a $8000$ sorgenti distinte; le quattro strategie condividono l\'oracolo $\mathcal O$.}
+\end{columns}\par\vspace{-0.07cm}\smallnote{Fino a $8000$ sorgenti distinte; le quattro strategie condividono l'oracolo $\mathcal O$.}
 \end{frame}
 
 % 16
@@ -558,85 +591,50 @@ $\displaystyle O\bigl(k_v(\mu)\log^3 N+M\bigr)$\\[8pt]
 \smallnote{Figura 8(d) della tesi. Con attività temporalmente sparsa, la ricerca scarta la grande maggioranza delle finestre.}
 \end{frame}
 
-% 19
-\begin{frame}[t]{Tempi di query: LSH+$W$ contro Brute Force}
-\vspace{.01cm}
-\begin{columns}[T,onlytextwidth]
-\column{.75\textwidth}
-\begin{tikzpicture}
-\begin{axis}[ybar,width=10.33cm,height=5.87cm,ymode=log,log basis y=10,
- ymin=1,ymax=2000000,grid=major,bar width=10pt,
- symbolic x coords={chess,College,SFHH,Enron,Facebook},xtick=data,
- ylabel={Tempo medio di query ($\mu$s)},enlarge x limits=.13,
- legend columns=2,legend style={at={(.5,1.08)},anchor=south},
- x tick label style={font=\scriptsize}]
-\addplot[fill=muted!52,draw=muted] coordinates {(chess,3770.5) (College,537579) (SFHH,396216) (Enron,82757.9) (Facebook,165842)};
-\addplot[fill=teal,draw=teal] coordinates {(chess,2.36) (College,1244.46) (SFHH,1976.94) (Enron,9.82) (Facebook,38.69)};
-\legend{Brute Force,LSH+$W$}
-\end{axis}
-\end{tikzpicture}
-\column{.24\textwidth}
-\vspace{.54cm}
-\statbox{$8431\times$}{speedup Enron}\\[.10cm]
-\statbox{$4287\times$}{speedup Facebook}\\[.10cm]
-\statbox{$1596\times$}{speedup chess}
-\end{columns}
-\smallnote{Tabella 3. Query booleana, arresto al primo risultato positivo; asse dei tempi in scala logaritmica.}
+% 19 — Benchmark completo: brute force contro indice LSH unificato.
+\begin{frame}[t]{Benchmark: Brute Force e soluzione proposta}
+\vspace{.00cm}
+\begin{center}
+\includegraphics[width=.985\linewidth,height=5.40cm,keepaspectratio]{figures/benchmark_baseline.png}
+\end{center}
+\vspace{-.08cm}
+\begin{center}
+\chip{Enron: circa $4956\times$ più veloce}\qquad\chip{Facebook: circa $3676\times$ più veloce}
+\end{center}
+\smallnote{Confronto sui cinque dataset: tempi medi di query, spazio ausiliario e tempi di costruzione. Le scale logaritmiche sono indicate nei grafici.}
 \end{frame}
 
-% 20
-\begin{frame}[t]{Confronto fra le tre strategie LSH}
-\vspace{.10cm}
+% 20 — Pannello sinistro del benchmark delle tre strategie.
+\begin{frame}[t]{Confronto fra le tre strategie LSH: query}
+\vspace{.04cm}
 \begin{columns}[T,onlytextwidth]
-\column{.64\textwidth}
-\centering\small\bfseries Tempo medio di interrogazione ($\mu$s)
-\begin{tikzpicture}
-\begin{axis}[ybar,width=8.9cm,height=5.45cm,ymin=0,ymax=112,grid=major,bar width=11pt,
- symbolic x coords={Enron,Facebook},xtick=data,enlarge x limits=.26,
- legend columns=3,legend style={at={(.5,1.09)},anchor=south}]
-\addplot[fill=teal,draw=teal] coordinates {(Enron,9.82) (Facebook,38.69)};
-\addplot[fill=gold,draw=gold] coordinates {(Enron,91.88) (Facebook,86.71)};
-\addplot[fill=muted!57,draw=muted] coordinates {(Enron,34.64) (Facebook,85.61)};
-\legend{LSH+$W$,LSH--$W$,Alt+$W$}
-\end{axis}
-\end{tikzpicture}
-\column{.35\textwidth}
-\vspace{.47cm}
-\panel{4.1cm}{\textbf{LSH+$W$}\\[6pt]\small Indice globale e pruning.}
-\vspace{.12cm}
-\panel{4.1cm}{\textbf{LSH--$W$}\\[6pt]\small Stesso indice senza pruning.}
-\vspace{.12cm}
-\panel{4.1cm}{\textbf{Alt+$W$}\\[6pt]\small Indici separati per finestra.}
+\column{.53\textwidth}
+\centering
+\includegraphics[trim=0bp 60bp 1365bp 0bp,clip,width=\linewidth,height=5.40cm,keepaspectratio]{figures/benchmark_strategie.png}
+\column{.45\textwidth}
+\vspace{.24cm}
+\panel{5.3cm}{\textbf{LSH+$W$}\\[5pt]\small Indice globale con pruning temporale.}
+\vspace{.11cm}
+\panel{5.3cm}{\textbf{LSH--$W$}\\[5pt]\small Lo stesso indice, senza pruning.}
+\vspace{.11cm}
+\panel{5.3cm}{\textbf{Alt+$W$}\\[5pt]\small Indici LSH distinti per finestra.}
 \end{columns}
-\smallnote{Tabella 3. In SFHH il pruning non riduce il tempo di query: il vantaggio dipende dai dati.}
+\vspace{-.20cm}
+\begin{center}\benchlegend\end{center}
+\vspace{-.12cm}
+\smallnote{Il pruning è particolarmente efficace su Enron: il tempo medio scende da $91.30$ a $8.19\,\mu$s.}
 \end{frame}
 
-% 21
+% 21 — Pannelli centrale e destro del benchmark delle tre strategie.
 \begin{frame}[t]{Il costo del preprocessing e della memoria}
-\vspace{.08cm}
-\begin{columns}[T,onlytextwidth]
-\column{.49\textwidth}
-\centering\small\bfseries Costruzione dell'indice su Enron (s)
-\begin{tikzpicture}
-\begin{axis}[ybar,width=6.82cm,height=4.80cm,ymin=0,ymax=24,grid=major,bar width=19pt,
- symbolic x coords={LSH+W,LSH-W,Alt+W},xtick=data,enlarge x limits=.18,
- nodes near coords,every node near coord/.append style={font=\scriptsize}]
-\addplot[fill=teal!76,draw=teal] coordinates {(LSH+W,5.251) (LSH-W,20.909) (Alt+W,6.991)};
-\end{axis}
-\end{tikzpicture}
-\column{.49\textwidth}
-\centering\small\bfseries Memoria degli indici su Enron (MiB)
-\begin{tikzpicture}
-\begin{axis}[ybar,width=6.82cm,height=4.80cm,ymin=0,ymax=1460,grid=major,bar width=19pt,
- symbolic x coords={LSH+W,LSH-W,Alt+W},xtick=data,enlarge x limits=.18,
- nodes near coords,every node near coord/.append style={font=\scriptsize}]
-\addplot[fill=gold!85,draw=gold] coordinates {(LSH+W,1280.08) (LSH-W,1278.55) (Alt+W,1152.32)};
-\end{axis}
-\end{tikzpicture}
-\end{columns}
-\vspace{.16cm}
-\punch{L'indicizzazione accelera la query, ma richiede costruzione e RAM.}
-\smallnote{Tabella 4. I valori non includono la memoria e la costruzione dell'oracolo $\mathcal O$, comuni alle strategie.}
+\vspace{.03cm}
+\begin{center}
+\includegraphics[trim=682bp 60bp 0bp 0bp,clip,width=.96\linewidth,height=5.12cm,keepaspectratio]{figures/benchmark_strategie.png}
+\end{center}
+\vspace{-.34cm}
+\begin{center}\benchlegend\end{center}
+\vspace{-.14cm}
+\smallnote{Spazio ausiliario e tempo di costruzione sui cinque dataset, da valutare insieme ai tempi di query.}
 \end{frame}
 
 % 22
@@ -671,10 +669,10 @@ $\operatorname{Recall}_{\mathrm{LSH}\mid\mathrm{BF}}
 \begin{columns}[T,onlytextwidth]
 \column{.49\textwidth}
 \centering\textbf{CollegeMsg}\\[.12cm]
-\includegraphics[width=\linewidth,height=4.53cm,keepaspectratio]{figures/candidates_college.pdf}
+\includegraphics[width=\linewidth,height=4.53cm,keepaspectratio]{figures/CollegeMsg_comparison.pdf}
 \column{.49\textwidth}
-\centering\textbf{Enron: $87\,273$ nodi}\\[.12cm]
-\includegraphics[width=\linewidth,height=4.53cm,keepaspectratio]{figures/candidates_enron.pdf}
+\centering\textbf{Enron}\\[.12cm]
+\includegraphics[width=\linewidth,height=4.53cm,keepaspectratio]{figures/ia-enron-email-dynamic_comparison.pdf}
 \end{columns}
 \vspace{.13cm}
 \punch{Su Enron circa 220--230 candidati distinti in media.}
@@ -707,7 +705,7 @@ $\operatorname{Recall}_{\mathrm{LSH}\mid\mathrm{BF}}
 \vspace{2.1cm}
 {\color{white}\fontsize{37}{45}\selectfont\bfseries Grazie per l'attenzione!}\par\vspace{.42cm}
 {\color{bright}\Large Franco Salvucci}\par\vspace{.19cm}
-{\color{white!80}\small Il problema del Neighborhood Search su grafi temporali}
+{\color{white!80}\small Il Problema del Neighborhood Search su Grafi Temporali}
 \end{frame}}
 
 \end{document}

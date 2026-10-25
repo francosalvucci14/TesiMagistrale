@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.14)  19 OCT 2026 16:31
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.14)  23 OCT 2026 12:33
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -778,7 +778,7 @@ File: tikzlibraryplotmarks.code.tex 2025-08-29 v3.1.11a (3.1.11a)
  (/usr/share/texlive/texmf-dist/tex/generic/pgf/libraries/pgflibraryplotmarks.code.tex
 File: pgflibraryplotmarks.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 )))
-LaTeX Font Info:    Trying to load font information for T1+lmss on input line 91.
+LaTeX Font Info:    Trying to load font information for T1+lmss on input line 98.
  (/usr/share/texlive/texmf-dist/tex/latex/lm/t1lmss.fd
 File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
@@ -787,24 +787,24 @@ File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
 ) (build/presentazione.aux)
 \openout1 = `presentazione.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 98.
+LaTeX Font Info:    ... okay on input line 98.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -859,57 +859,57 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 48
  (/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
-Package hyperref Info: Link coloring OFF on input line 91.
+Package hyperref Info: Link coloring OFF on input line 98.
  (build/presentazione.out) (build/presentazione.out)
 \@outlinefile=\write5
 \openout5 = `presentazione.out'.
 
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/lmr/m/n --> OT1/cmss/m/n on input line 91.
+(Font)                  OT1/lmr/m/n --> OT1/cmss/m/n on input line 98.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/lmr/bx/n --> OT1/cmss/b/n on input line 91.
+(Font)                  OT1/lmr/bx/n --> OT1/cmss/b/n on input line 98.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/lmss/m/n on input line 91.
+(Font)                  OT1/cmss/m/n --> OT1/lmss/m/n on input line 98.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmss/b/n --> OT1/lmss/b/n on input line 91.
+(Font)                  OT1/cmss/b/n --> OT1/lmss/b/n on input line 98.
 \symnumbers=\mathgroup6
 \sympureletters=\mathgroup7
 LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `normal'
-(Font)                  OT1/lmss/m/n --> T1/lmr/m/n on input line 91.
-LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 91.
+(Font)                  OT1/lmss/m/n --> T1/lmr/m/n on input line 98.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 91.
+(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 91.
-LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 91.
+(Font)                  OT1/lmr/bx/n --> T1/lmss/b/n on input line 98.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/lmss/m/n --> T1/lmss/m/n on input line 91.
+(Font)                  OT1/lmss/m/n --> T1/lmss/m/n on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/lmss/bx/n --> T1/lmss/m/n on input line 91.
-LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 91.
+(Font)                  OT1/lmss/bx/n --> T1/lmss/m/n on input line 98.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/lmr/m/it --> T1/lmss/m/it on input line 91.
+(Font)                  OT1/lmr/m/it --> T1/lmss/m/it on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/lmr/bx/it --> T1/lmss/m/it on input line 91.
-LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 91.
+(Font)                  OT1/lmr/bx/it --> T1/lmss/m/it on input line 98.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 91.
+(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 91.
+(Font)                  OT1/lmtt/m/n --> T1/lmtt/m/n on input line 98.
 LaTeX Font Info:    Overwriting symbol font `numbers' in version `bold'
-(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 91.
+(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 98.
 LaTeX Font Info:    Overwriting symbol font `pureletters' in version `bold'
-(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 91.
+(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `bold'
-(Font)                  OT1/lmss/b/n --> T1/lmr/b/n on input line 91.
+(Font)                  OT1/lmss/b/n --> T1/lmr/b/n on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  T1/lmss/b/n --> T1/lmss/b/n on input line 91.
+(Font)                  T1/lmss/b/n --> T1/lmss/b/n on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 91.
+(Font)                  T1/lmss/m/n --> T1/lmss/b/n on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 91.
+(Font)                  T1/lmss/m/it --> T1/lmss/b/it on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  T1/lmtt/m/n --> T1/lmtt/b/n on input line 91.
+(Font)                  T1/lmtt/m/n --> T1/lmtt/b/n on input line 98.
  (/usr/share/texlive/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict
 Dictionary: translator-basic-dictionary, Language: English 
 ) (/usr/share/texlive/texmf-dist/tex/latex/translator/translator-bibliography-dictionary-English.dict
@@ -923,15 +923,15 @@ Dictionary: translator-numbers-dictionary, Language: English
 ) (/usr/share/texlive/texmf-dist/tex/latex/translator/translator-theorem-dictionary-English.dict
 Dictionary: translator-theorem-dictionary, Language: English 
 )
-LaTeX Info: Redefining \it@ocap on input line 91.
-LaTeX Info: Redefining \it@ccap on input line 91.
-LaTeX Info: Redefining \microtypecontext on input line 91.
-Package microtype Info: Applying patch `item' on input line 91.
-Package microtype Info: Applying patch `toc' on input line 91.
-Package microtype Info: Applying patch `eqnum' on input line 91.
-Package microtype Info: Applying patch `footnote' on input line 91.
-Package microtype Info: Applying patch `verbatim' on input line 91.
-LaTeX Info: Redefining \microtypesetup on input line 91.
+LaTeX Info: Redefining \it@ocap on input line 98.
+LaTeX Info: Redefining \it@ccap on input line 98.
+LaTeX Info: Redefining \microtypecontext on input line 98.
+Package microtype Info: Applying patch `item' on input line 98.
+Package microtype Info: Applying patch `toc' on input line 98.
+Package microtype Info: Applying patch `eqnum' on input line 98.
+Package microtype Info: Applying patch `footnote' on input line 98.
+Package microtype Info: Applying patch `verbatim' on input line 98.
+LaTeX Info: Redefining \microtypesetup on input line 98.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -949,14 +949,17 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 Package pgfplots notification 'compat/show suggested version=true': document has been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
 
-(build/presentazione.nav) [1
+(build/presentazione.nav)
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <12> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 118.
+ [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}] [2
 
 ] [3
 
 ]
-LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 164.
+LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 173.
  (/usr/share/texlive/texmf-dist/tex/latex/lm/ot1lmss.fd
 File: ot1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -964,66 +967,65 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmss' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 164.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 173.
  (/usr/share/texlive/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 164.
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 173.
  (/usr/share/texlive/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 164.
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 173.
  (/usr/share/texlive/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 164.
+(Font)              <9> on input line 173.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 164.
+(Font)              <6> on input line 173.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 164.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 164.
+(Font)              <5> on input line 173.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 173.
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 ) (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 164.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 173.
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <9> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 173.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <6> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 173.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <5> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 173.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 164.
+(Font)              <10> on input line 173.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 164.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <12> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <8> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 164.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 164.
+(Font)              <7> on input line 173.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 173.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <7> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 164.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 173.
 
-Overfull \vbox (10.8747pt too high) detected at line 164
+Overfull \vbox (3.8747pt too high) detected at line 173
  []
 
 [4
 
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
-Overfull \vbox (8.16669pt too high) detected at line 205
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <12> on input line 214.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <8> on input line 214.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <8> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 214.
+
+Overfull \vbox (8.16669pt too high) detected at line 214
  []
 
 [5
@@ -1032,27 +1034,27 @@ Overfull \vbox (8.16669pt too high) detected at line 205
 
 ] [7
 
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [8
+] [8
 
 ] [9
 
-]
-Overfull \vbox (1.66042pt too high) detected at line 312
+] [10
+
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]
+Overfull \vbox (1.66042pt too high) detected at line 376
  []
 
-[10
-
-] [11
+[11
 
 ]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.4> on input line 364.
+(Font)              <14.4> on input line 397.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 364.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 397.
  [12
 
 ]
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 387.
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 420.
  (/usr/share/texlive/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-cmr.cfg
@@ -1064,7 +1066,7 @@ File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman (
 ] [15
 
 ]
-Overfull \vbox (0.89934pt too high) detected at line 478
+Overfull \vbox (0.89934pt too high) detected at line 511
  []
 
 [16
@@ -1072,31 +1074,31 @@ Overfull \vbox (0.89934pt too high) detected at line 478
 ] [17
 
 ]
-Package pgfplots info on input line 505: Using 'lua backend=false' for axis: x coord trafo unsupported.
+Package pgfplots info on input line 538: Using 'lua backend=false' for axis: x coord trafo unsupported.
  [18
 
 ]
 <figures/oracle_er.pdf, id=175, 215.80624pt x 119.44624pt>
 File: figures/oracle_er.pdf Graphic file (type pdf)
 <use figures/oracle_er.pdf>
-Package pdftex.def Info: figures/oracle_er.pdf  used on input line 521.
+Package pdftex.def Info: figures/oracle_er.pdf  used on input line 554.
 (pdftex.def)             Requested size: 207.4647pt x 114.82928pt.
 <figures/oracle_synthetic.pdf, id=176, 205.76875pt x 120.45pt>
 File: figures/oracle_synthetic.pdf Graphic file (type pdf)
 <use figures/oracle_synthetic.pdf>
-Package pdftex.def Info: figures/oracle_synthetic.pdf  used on input line 521.
+Package pdftex.def Info: figures/oracle_synthetic.pdf  used on input line 554.
 (pdftex.def)             Requested size: 207.45743pt x 121.43848pt.
  [19
 
  <./figures/oracle_er.pdf> <./figures/oracle_synthetic.pdf>]
-Package pgfplots info on input line 538: Using 'lua backend=false' for axis: x coord trafo unsupported.
+Package pgfplots info on input line 571: Using 'lua backend=false' for axis: x coord trafo unsupported.
  [20
 
 ]
 <figures/pruning_sfhh.pdf, id=305, 211.79124pt x 56.21pt>
 File: figures/pruning_sfhh.pdf Graphic file (type pdf)
 <use figures/pruning_sfhh.pdf>
-Package pdftex.def Info: figures/pruning_sfhh.pdf  used on input line 549.
+Package pdftex.def Info: figures/pruning_sfhh.pdf  used on input line 582.
 (pdftex.def)             Requested size: 385.28938pt x 102.25688pt.
  [21
 
@@ -1104,62 +1106,71 @@ Package pdftex.def Info: figures/pruning_sfhh.pdf  used on input line 549.
 <figures/pruning_enron.pdf, id=398, 217.81375pt x 58.2175pt>
 File: figures/pruning_enron.pdf Graphic file (type pdf)
 <use figures/pruning_enron.pdf>
-Package pdftex.def Info: figures/pruning_enron.pdf  used on input line 559.
+Package pdftex.def Info: figures/pruning_enron.pdf  used on input line 592.
 (pdftex.def)             Requested size: 385.27437pt x 102.97655pt.
  [22
 
  <./figures/pruning_enron.pdf>]
-Package pgfplots info on input line 585: Using 'lua backend=false' for axis: ymode=log unsupported (yet).
-Package pgfplots info on input line 585: Using 'lua backend=false' for axis: x coord trafo unsupported.
+<figures/benchmark_baseline.png, id=490, 2055.68pt x 696.6025pt>
+File: figures/benchmark_baseline.png Graphic file (type png)
+<use figures/benchmark_baseline.png>
+Package pdftex.def Info: figures/benchmark_baseline.png  used on input line 605.
+(pdftex.def)             Requested size: 417.02574pt x 141.31633pt.
  [23
 
-]
-Package pgfplots info on input line 612: Using 'lua backend=false' for axis: x coord trafo unsupported.
+ <./figures/benchmark_baseline.png>]
+<figures/benchmark_strategie.png, id=500, 2055.68pt x 696.6025pt>
+File: figures/benchmark_strategie.png Graphic file (type png)
+<use figures/benchmark_strategie.png>
+Package pdftex.def Info: figures/benchmark_strategie.png  used on input line 626.
+(pdftex.def)             Requested size: 165.51091pt x 153.63678pt.
  [24
 
-]
-Package pgfplots info on input line 640: Using 'lua backend=false' for axis: x coord trafo unsupported.
-Package pgfplots info on input line 640: Using 'lua backend=false' for axis: x coord trafo unsupported.
+ <./figures/benchmark_strategie.png>]
+File: figures/benchmark_strategie.png Graphic file (type png)
+<use figures/benchmark_strategie.png>
+Package pdftex.def Info: figures/benchmark_strategie.png  used on input line 638.
+(pdftex.def)             Requested size: 313.86612pt x 145.67432pt.
  [25
 
 ]
-Package pgfplots info on input line 666: Using 'lua backend=false' for axis: x coord trafo unsupported.
+Package pgfplots info on input line 664: Using 'lua backend=false' for axis: x coord trafo unsupported.
 
-Overfull \hbox (1.5464pt too wide) in paragraph at lines 666--666
+Overfull \hbox (1.5464pt too wide) in paragraph at lines 664--664
 [][]  
  []
 
 
-Overfull \hbox (1.5464pt too wide) in paragraph at lines 666--666
+Overfull \hbox (1.5464pt too wide) in paragraph at lines 664--664
 [][]  
  []
 
 
-Overfull \vbox (1.27786pt too high) detected at line 666
+Overfull \vbox (1.27786pt too high) detected at line 664
  []
 
 [26
 
 ]
-<figures/candidates_college.pdf, id=521, 125.46875pt x 76.285pt>
-File: figures/candidates_college.pdf Graphic file (type pdf)
-<use figures/candidates_college.pdf>
-Package pdftex.def Info: figures/candidates_college.pdf  used on input line 682.
-(pdftex.def)             Requested size: 207.48161pt x 126.14882pt.
-<figures/candidates_enron.pdf, id=522, 118.4425pt x 70.2625pt>
-File: figures/candidates_enron.pdf Graphic file (type pdf)
-<use figures/candidates_enron.pdf>
-Package pdftex.def Info: figures/candidates_enron.pdf  used on input line 682.
-(pdftex.def)             Requested size: 207.46361pt x 123.07161pt.
+<figures/CollegeMsg_comparison.pdf, id=530, 1057.43678pt x 591.17818pt>
+File: figures/CollegeMsg_comparison.pdf Graphic file (type pdf)
+<use figures/CollegeMsg_comparison.pdf>
+Package pdftex.def Info: figures/CollegeMsg_comparison.pdf  used on input line 680.
+(pdftex.def)             Requested size: 207.44981pt x 115.97838pt.
+<figures/ia-enron-email-dynamic_comparison.pdf, id=531, 1080.42892pt x 591.17818pt>
+File: figures/ia-enron-email-dynamic_comparison.pdf Graphic file (type pdf)
+<use figures/ia-enron-email-dynamic_comparison.pdf>
+Package pdftex.def Info: figures/ia-enron-email-dynamic_comparison.pdf  used on input line 680.
+(pdftex.def)             Requested size: 207.44328pt x 113.50671pt.
  [27
 
- <./figures/candidates_college.pdf> <./figures/candidates_enron.pdf>] [28
+ <./figures/CollegeMsg_comparison.pdf> <./figures/ia-enron-email-dynamic_comparison.pdf>] [28
 
 ]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <20.74> on input line 697.
+(Font)              <20.74> on input line 695.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <20.74> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 697.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 695.
  [29
 
 ] [30
@@ -1183,18 +1194,18 @@ Package rerunfilecheck Info: File `presentazione.out' has not changed.
 (rerunfilecheck)             Checksum: DF2F0ABBEF417904C83387DF4478F6D4;739.
  ) 
 Here is how much of TeX's memory you used:
- 40948 strings out of 467363
- 947621 string characters out of 5419000
- 1543519 words of memory out of 6000000
- 69017 multiletter control sequences out of 15000+600000
- 796087 words of font info for 237 fonts, out of 8000000 for 9000
+ 40886 strings out of 467363
+ 946798 string characters out of 5419000
+ 1543870 words of memory out of 6000000
+ 68953 multiletter control sequences out of 15000+600000
+ 793426 words of font info for 237 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,21n,123p,1068b,2629s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on build/presentazione.pdf (30 pages, 7916920 bytes).
+Output written on build/presentazione.pdf (30 pages, 6921653 bytes).
 PDF statistics:
- 797 PDF objects out of 1000 (max. 8388607)
- 497 compressed objects within 5 object streams
+ 722 PDF objects out of 1000 (max. 8388607)
+ 454 compressed objects within 5 object streams
  65 named destinations out of 1000 (max. 500000)
- 106601 words of extra memory for PDF output out of 106986 (max. 10000000)
+ 104575 words of extra memory for PDF output out of 106986 (max. 10000000)
 
