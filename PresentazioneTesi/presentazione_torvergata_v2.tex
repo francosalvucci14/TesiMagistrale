@@ -344,53 +344,165 @@ $\displaystyle N^I(v)=\bigcup_{t\in I}N^t(v)$\\[9pt]
 
 % 07 — Varianti
 \begin{frame}[t]{Due varianti del Neighborhood Search temporale}
+
 \vspace{.03cm}
-% La definizione resta visibile: \mu cambia posizione tra Input e Query.
+
+% La definizione resta sempre visibile.
+% Overlay 1: mu appare solo nell'intervallo I.
+% Overlay 2: mu >= 0 nell'Input (Variante 1).
+% Overlay 3: mu >= 0 nella Query (Variante 2).
+
 \begin{overlayarea}{\textwidth}{1.62cm}
 {\small
-\textbf{Input:} $\mathcal G=(V,E,\lambda)$, $\tau\in[0,1]$ e
-$\sigma:2^V\times2^V\to[0,1]$
-\only<1>{, \textcolor{red!80!black}{\boldmath$\mu\geq0$}}.\\[3pt]
-\textbf{Query:} un nodo $v\in V$\only<2->{ e
-\textcolor{red!80!black}{\boldmath$\mu\geq0$}}.\\[3pt]
-\textbf{Goal:} trovare $u\neq v$ e $I=[t,t+\textcolor{red!80!black}{\mu}]$ tali che
+
+\textbf{Input:}
+$\mathcal G=(V,E,\lambda)$,
+$\tau\in[0,1]$
+\only<2>{,
+$\textcolor{red!80!black}{\boldsymbol{\mu}\geq0}$}.
+\\[3pt]
+
+\textbf{Query:}
+un nodo $v\in V$
+\only<3->{e
+$\textcolor{red!80!black}{\boldsymbol{\mu}\geq0}$}.
+\\[3pt]
+
+\textbf{Goal:}
+trovare $u\neq v$ e
+$I=[t,t+\textcolor{red!80!black}{\boldsymbol{\mu}}]$
+tali che
 \chip{$J(N^I(v),N^I(u))\geq\tau$}.
+
 \par}
 \end{overlayarea}
+
 \vspace{.10cm}
+
 \begin{columns}[T,onlytextwidth]
-\column{.49\textwidth}\centering
+
+% =====================================================
+% VARIANTE 1
+% =====================================================
+
+\column{.49\textwidth}
+\centering
+
 \begin{tikzpicture}
-  \path[use as bounding box](-3.12,-1.53)rectangle(3.12,1.53);
-  \only<1>{
-    \node[draw=teal,fill=ice,line width=1.7pt,rounded corners=9pt,
-      minimum width=5.65cm,minimum height=2.56cm,align=center] at (0,0)
-      {{\color{teal}\large\bfseries VARIANTE 1}\\[9pt]
-       {\Large\bfseries Ampiezza fissa}\\[9pt]
-       \textcolor{red!80!black}{$\boldsymbol{\mu}$} nell'\textbf{input del problema}};
+
+  \path[use as bounding box]
+    (-3.12,-1.53) rectangle (3.12,1.53);
+
+  % Overlay 2: Variante 1 evidenziata
+  \only<2>{
+    \node[
+      draw=teal,
+      fill=ice,
+      line width=1.7pt,
+      rounded corners=9pt,
+      minimum width=5.65cm,
+      minimum height=2.56cm,
+      align=center
+    ] at (0,0)
+    {
+      {\color{teal}\large\bfseries VARIANTE 1}\\[9pt]
+      {\Large\bfseries Ampiezza fissa}\\[9pt]
+      $\boldsymbol{\mu}$ nell'\textbf{input del problema}
+    };
   }
-  \only<2->{
-    \node[draw=rulegray,fill=cloud,opacity=.33,rounded corners=7pt,
-      minimum width=4.3cm,minimum height=1.44cm,align=center] at (0,0)
-      {\small\bfseries VARIANTE 1\\[4pt]\normalsize Ampiezza fissa};
+
+  % Overlay 3: Variante 1 in secondo piano
+  \only<3->{
+    \node[
+      draw=rulegray,
+      fill=cloud,
+      opacity=.33,
+      rounded corners=7pt,
+      minimum width=4.3cm,
+      minimum height=1.44cm,
+      align=center
+    ] at (0,0)
+    {
+      \small\bfseries VARIANTE 1\\[4pt]
+      \normalsize Ampiezza fissa
+    };
   }
+
 \end{tikzpicture}
-\column{.49\textwidth}\centering
+
+% =====================================================
+% VARIANTE 2
+% =====================================================
+
+\column{.49\textwidth}
+\centering
+
 \begin{tikzpicture}
-  \path[use as bounding box](-3.12,-1.53)rectangle(3.12,1.53);
-  \only<1>{
-    \node[draw=rulegray,fill=cloud,opacity=.33,rounded corners=7pt,
-      minimum width=4.3cm,minimum height=1.44cm,align=center] at (0,0)
-      {\small\bfseries VARIANTE 2\\[4pt]\normalsize Ampiezza variabile};
+
+  \path[use as bounding box]
+    (-3.12,-1.53) rectangle (3.12,1.53);
+
+  % Overlay 2: Variante 2 in secondo piano
+  \only<2>{
+    \node[
+      draw=rulegray,
+      fill=cloud,
+      opacity=.33,
+      rounded corners=7pt,
+      minimum width=4.3cm,
+      minimum height=1.44cm,
+      align=center
+    ] at (0,0)
+    {
+      \small\bfseries VARIANTE 2\\[4pt]
+      \normalsize Ampiezza variabile
+    };
   }
-  \only<2->{
-    \node[draw=teal,fill=ice,line width=1.7pt,rounded corners=9pt,
-      minimum width=5.65cm,minimum height=2.56cm,align=center] at (0,0)
-      {{\color{teal}\large\bfseries VARIANTE 2}\\[9pt]
-       {\Large\bfseries Ampiezza variabile}\\[9pt]
-       \textcolor{red!80!black}{$\boldsymbol{\mu}$} fornita con la \textbf{query}};
+
+  % Overlay 3: Variante 2 evidenziata
+  \only<3->{
+    \node[
+      draw=teal,
+      fill=ice,
+      line width=1.7pt,
+      rounded corners=9pt,
+      minimum width=5.65cm,
+      minimum height=2.56cm,
+      align=center
+    ] at (0,0)
+    {
+      {\color{teal}\large\bfseries VARIANTE 2}\\[9pt]
+      {\Large\bfseries Ampiezza variabile}\\[9pt]
+      $\boldsymbol{\mu}$ fornita con la \textbf{query}
+    };
   }
+
 \end{tikzpicture}
+\end{columns}
+\end{frame}
+
+% 08 — Contributi variante 1, alto livello
+\begin{frame}[t]{Contributo 1: LSH su intervalli di ampiezza fissa}
+\vspace{.12cm}
+\begin{columns}[T,onlytextwidth]
+\column{.52\textwidth}
+\begin{itemize}\setlength\itemsep{13pt}
+  \item \textbf{Adattamento di LSH} alle coppie nodo--finestra.
+  \item \textbf{Pruning} delle finestre inattive tramite $W(v)$.
+  \item \textbf{Oracolo $\mathcal O$} per recuperare sketch senza ricostruire vicinati.
+  \item \textbf{Analisi teorica} e confronto sperimentale sui grafi reali.
+\end{itemize}
+\column{.45\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[xbar,width=6.25cm,height=4.0cm,xmin=0,xmax=104,grid=major,
+  symbolic y coords={SFHH,Facebook,Enron},ytick=data,
+  xlabel={Finestre eliminate (\%)},nodes near coords,
+  every node near coord/.append style={font=\scriptsize},enlarge y limits=.24]
+  \addplot[fill=teal!75,draw=teal] coordinates {(10.1,SFHH) (96.2,Facebook) (98.2,Enron)};
+\end{axis}
+\end{tikzpicture}
+\smallnote{Esempio sperimentale: pruning molto diverso tra dataset.}
 \end{columns}
 \end{frame}
 
@@ -409,24 +521,28 @@ $\sigma:2^V\times2^V\to[0,1]$
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm]
   \path[use as bounding box](.32,-.36)rectangle(5.86,4.62);
-  % Cerchi realmente concentrici: stessi centro e scala.
-  \fill[ice] (3.06,2.26) circle (2.03cm);
-  \draw[teal,line width=1.65pt] (3.06,2.26) circle (2.03cm);
+  % Overlay 1: candidati LSH. Overlay 2: compare il sovrainsieme.
+  \visible<2->{
+    \fill[ice] (3.06,2.26) circle (2.03cm);
+    \draw[teal,line width=1.65pt] (3.06,2.26) circle (2.03cm);
+    \node[font=\scriptsize\bfseries,text=teal!80!black,align=center] at (3.06,3.70)
+      {Oracolo: sovrainsieme\\candidati};
+  }
   \fill[teal!21] (3.06,2.26) circle (1.08cm);
   \draw[ink!82,line width=1.4pt] (3.06,2.26) circle (1.08cm);
-  \node[font=\scriptsize\bfseries,text=teal!80!black,align=center] at (3.06,3.70)
-    {Oracolo: sovrainsieme\\candidati};
   \node[font=\small\bfseries,text=ink,align=center] at (3.06,2.70)
     {Candidati\\LSH};
   % a,b: candidati della prima banda; c,d,e: ulteriori candidati dell'oracolo.
   \foreach \x/\y/\nm in {2.71/1.88/a,3.41/1.88/b}{
     \node[circle,draw=ink!80,fill=white,minimum size=.36cm,inner sep=0,
       font=\scriptsize\bfseries] at (\x,\y) {\nm};}
-  \foreach \x/\y/\nm in {1.73/2.23/c,4.40/2.23/d,3.73/.91/e}{
-    \node[circle,draw=teal,fill=white,minimum size=.36cm,inner sep=0,
-      font=\scriptsize\bfseries,text=teal!80!black] at (\x,\y) {\nm};}
-  \node[font=\scriptsize,text=muted,align=center,text width=5.5cm] at (3.06,-.12)
-    {$\{a,b\}\subseteq\{a,b,c,d,e\}$};
+  \visible<2->{
+    \foreach \x/\y/\nm in {1.73/2.23/c,4.40/2.23/d,3.73/.91/e}{
+      \node[circle,draw=teal,fill=white,minimum size=.36cm,inner sep=0,
+        font=\scriptsize\bfseries,text=teal!80!black] at (\x,\y) {\nm};}
+    \node[font=\scriptsize,text=muted,align=center,text width=5.5cm] at (3.06,-.12)
+      {$\{a,b\}\subseteq\{a,b,c,d,e\}$};
+  }
 \end{tikzpicture}
 \end{columns}
 \end{frame}
@@ -629,7 +745,8 @@ $\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[10pt]
   yticklabel style={font=\small},xlabel={Finestre escluse (\%)},
   axis y line=left,y axis line style={draw=none},ytick style={draw=none},
   nodes near coords,point meta=explicit symbolic,
-  every node near coord/.append style={font=\small},enlarge y limits=.17]
+  every node near coord/.append style={font=\small,anchor=west,xshift=5pt,yshift=0pt},
+  enlarge y limits=.17]
   \addplot[fill=teal!78,draw=teal] coordinates {
     (10.1,SFHH) [10.1\%] (33.2,chess) [33.2\%]
     (37.2,CollegeMsg) [37.2\%] (96.2,Facebook) [96.2\%]

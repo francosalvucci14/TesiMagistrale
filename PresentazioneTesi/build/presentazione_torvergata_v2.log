@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.14)  25 OCT 2026 23:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.14)  26 OCT 2026 15:18
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1012,211 +1012,223 @@ LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
 
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]
 LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <9> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 395.
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 482.
 LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <6> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 395.
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 482.
 LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <5> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 395.
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <9> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <6> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <5> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <9> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <9> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <6> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <6> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <5> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 482.
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <5> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 395.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 482.
 
-Overfull \vbox (4.29652pt too high) detected at line 395
+Overfull \vbox (4.29652pt too high) detected at line 482
  []
 
-LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <10> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 395.
-LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <7> not available
-(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 395.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <10> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 395.
-LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <7> not available
-(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 395.
-LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <10> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 395.
-LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <10> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 395.
-LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <7> not available
-(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 395.
-LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <7> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 395.
 [10
 
 ]
-Overfull \vbox (4.31654pt too high) detected at line 395
+Overfull \vbox (4.29652pt too high) detected at line 482
  []
 
+LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <10> not available
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 482.
+LaTeX Font Info:    Font shape `OT1/lmss/b/n' in size <7> not available
+(Font)              Font shape `OT1/lmss/bx/n' tried instead on input line 482.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <10> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 482.
+LaTeX Font Info:    Font shape `T1/lmss/b/n' in size <7> not available
+(Font)              Font shape `T1/lmss/bx/n' tried instead on input line 482.
+LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <10> not available
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 482.
+LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <10> not available
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 482.
+LaTeX Font Info:    Font shape `T1/lmss/b/it' in size <7> not available
+(Font)              Font shape `T1/lmss/bx/it' tried instead on input line 482.
+LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <7> not available
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 482.
 [11
 
-] [12
+]
+Overfull \vbox (4.29654pt too high) detected at line 482
+ []
+
+[12
 
 ]
-<figures/TorVergataLogo_no-sfondo.png, id=140, 668.4975pt x 376.40625pt>
-File: figures/TorVergataLogo_no-sfondo.png Graphic file (type png)
-<use figures/TorVergataLogo_no-sfondo.png>
-Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 435.
-(pdftex.def)             Requested size: 135.15059pt x 76.09549pt.
+Package pgfplots info on input line 507: Using 'lua backend=false' for axis: x coord trafo unsupported.
  [13
 
- <./figures/TorVergataLogo_no-sfondo.png>] [14
+] [14
 
 ] [15
 
-] [16
+]
+<figures/TorVergataLogo_no-sfondo.png, id=159, 668.4975pt x 376.40625pt>
+File: figures/TorVergataLogo_no-sfondo.png Graphic file (type png)
+<use figures/TorVergataLogo_no-sfondo.png>
+Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 551.
+(pdftex.def)             Requested size: 135.15059pt x 76.09549pt.
+ [16
 
-] [17
+ <./figures/TorVergataLogo_no-sfondo.png>] [17
+
+] [18
+
+] [19
+
+] [20
 
 ]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.4> on input line 526.
+(Font)              <14.4> on input line 642.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 526.
- [18
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 642.
+ [21
 
 ]
-Overfull \vbox (2.77058pt too high) detected at line 571
- []
-
-[19
-
-]
-Overfull \vbox (2.77058pt too high) detected at line 571
- []
-
-[20
-
-]
-Overfull \vbox (2.77058pt too high) detected at line 571
- []
-
-[21
-
-]
-Overfull \vbox (2.77058pt too high) detected at line 571
+Overfull \vbox (2.77058pt too high) detected at line 687
  []
 
 [22
 
-] [23
-
-] [24
-
 ]
-Package pgfplots info on input line 642: Using 'lua backend=false' for axis: x coord trafo unsupported.
- [25
-
-]
-<figures/pruning_sfhh.pdf, id=234, 211.79124pt x 56.21pt>
-File: figures/pruning_sfhh.pdf Graphic file (type pdf)
-<use figures/pruning_sfhh.pdf>
-Package pdftex.def Info: figures/pruning_sfhh.pdf  used on input line 657.
-(pdftex.def)             Requested size: 398.5263pt x 105.77pt.
- [26
-
- <./figures/pruning_sfhh.pdf>]
-<figures/pruning_enron.pdf, id=326, 217.81375pt x 58.2175pt>
-File: figures/pruning_enron.pdf Graphic file (type pdf)
-<use figures/pruning_enron.pdf>
-Package pdftex.def Info: figures/pruning_enron.pdf  used on input line 672.
-(pdftex.def)             Requested size: 398.50882pt x 106.51385pt.
- [27
-
- <./figures/pruning_enron.pdf>]
-<figures/benchmark_baseline.png, id=419, 2055.68pt x 696.6025pt>
-File: figures/benchmark_baseline.png Graphic file (type png)
-<use figures/benchmark_baseline.png>
-Package pdftex.def Info: figures/benchmark_baseline.png  used on input line 687.
-(pdftex.def)             Requested size: 373.61365pt x 126.60541pt.
-
-Overfull \vbox (1.22063pt too high) detected at line 687
+Overfull \vbox (2.77058pt too high) detected at line 687
  []
 
-[28
-
- <./figures/benchmark_baseline.png>]
-Package pgfplots info on input line 713: Using 'lua backend=false' for axis: x coord trafo unsupported.
- [29
+[23
 
 ]
-Package pgfplots info on input line 741: Using 'lua backend=false' for axis: x coord trafo unsupported.
+Overfull \vbox (2.77058pt too high) detected at line 687
+ []
+
+[24
+
+]
+Overfull \vbox (2.77058pt too high) detected at line 687
+ []
+
+[25
+
+] [26
+
+] [27
+
+]
+Package pgfplots info on input line 759: Using 'lua backend=false' for axis: x coord trafo unsupported.
+ [28
+
+]
+<figures/pruning_sfhh.pdf, id=252, 211.79124pt x 56.21pt>
+File: figures/pruning_sfhh.pdf Graphic file (type pdf)
+<use figures/pruning_sfhh.pdf>
+Package pdftex.def Info: figures/pruning_sfhh.pdf  used on input line 774.
+(pdftex.def)             Requested size: 398.5263pt x 105.77pt.
+ [29
+
+ <./figures/pruning_sfhh.pdf>]
+<figures/pruning_enron.pdf, id=345, 217.81375pt x 58.2175pt>
+File: figures/pruning_enron.pdf Graphic file (type pdf)
+<use figures/pruning_enron.pdf>
+Package pdftex.def Info: figures/pruning_enron.pdf  used on input line 789.
+(pdftex.def)             Requested size: 398.50882pt x 106.51385pt.
  [30
+
+ <./figures/pruning_enron.pdf>]
+<figures/benchmark_baseline.png, id=437, 2055.68pt x 696.6025pt>
+File: figures/benchmark_baseline.png Graphic file (type png)
+<use figures/benchmark_baseline.png>
+Package pdftex.def Info: figures/benchmark_baseline.png  used on input line 804.
+(pdftex.def)             Requested size: 373.61365pt x 126.60541pt.
+
+Overfull \vbox (1.22063pt too high) detected at line 804
+ []
+
+[31
+
+ <./figures/benchmark_baseline.png>]
+Package pgfplots info on input line 830: Using 'lua backend=false' for axis: x coord trafo unsupported.
+ [32
+
+]
+Package pgfplots info on input line 858: Using 'lua backend=false' for axis: x coord trafo unsupported.
+ [33
 
 ]
 File: figures/TorVergataLogo_no-sfondo.png Graphic file (type png)
 <use figures/TorVergataLogo_no-sfondo.png>
-Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 744.
+Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 861.
 (pdftex.def)             Requested size: 135.15059pt x 76.09549pt.
- [31
+ [34
 
 ]
-Overfull \vbox (0.29015pt too high) detected at line 868
- []
-
-[32
-
-]
-Overfull \vbox (0.29015pt too high) detected at line 868
- []
-
-[33
-
-]
-Overfull \vbox (0.29015pt too high) detected at line 868
- []
-
-[34
-
-]
-Overfull \vbox (0.29015pt too high) detected at line 868
+Overfull \vbox (0.29015pt too high) detected at line 985
  []
 
 [35
 
-] [36
+]
+Overfull \vbox (0.29015pt too high) detected at line 985
+ []
+
+[36
 
 ]
-<figures/CollegeMsg_comparison.pdf, id=480, 1108.0258pt x 674.12166pt>
-File: figures/CollegeMsg_comparison.pdf Graphic file (type pdf)
-<use figures/CollegeMsg_comparison.pdf>
-Package pdftex.def Info: figures/CollegeMsg_comparison.pdf  used on input line 907.
-(pdftex.def)             Requested size: 207.7205pt x 126.37692pt.
-<figures/ia-enron-email-dynamic_comparison.pdf, id=481, 1131.01796pt x 674.12166pt>
-File: figures/ia-enron-email-dynamic_comparison.pdf Graphic file (type pdf)
-<use figures/ia-enron-email-dynamic_comparison.pdf>
-Package pdftex.def Info: figures/ia-enron-email-dynamic_comparison.pdf  used on input line 907.
-(pdftex.def)             Requested size: 207.7336pt x 123.81564pt.
- [37
+Overfull \vbox (0.29015pt too high) detected at line 985
+ []
 
- <./figures/CollegeMsg_comparison.pdf> <./figures/ia-enron-email-dynamic_comparison.pdf>]
-File: figures/TorVergataLogo_no-sfondo.png Graphic file (type png)
-<use figures/TorVergataLogo_no-sfondo.png>
-Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 909.
-(pdftex.def)             Requested size: 135.15059pt x 76.09549pt.
- [38
+[37
+
+]
+Overfull \vbox (0.29015pt too high) detected at line 985
+ []
+
+[38
 
 ] [39
 
 ]
+<figures/CollegeMsg_comparison.pdf, id=500, 1108.0258pt x 674.12166pt>
+File: figures/CollegeMsg_comparison.pdf Graphic file (type pdf)
+<use figures/CollegeMsg_comparison.pdf>
+Package pdftex.def Info: figures/CollegeMsg_comparison.pdf  used on input line 1024.
+(pdftex.def)             Requested size: 207.7205pt x 126.37692pt.
+<figures/ia-enron-email-dynamic_comparison.pdf, id=501, 1131.01796pt x 674.12166pt>
+File: figures/ia-enron-email-dynamic_comparison.pdf Graphic file (type pdf)
+<use figures/ia-enron-email-dynamic_comparison.pdf>
+Package pdftex.def Info: figures/ia-enron-email-dynamic_comparison.pdf  used on input line 1024.
+(pdftex.def)             Requested size: 207.7336pt x 123.81564pt.
+ [40
+
+ <./figures/CollegeMsg_comparison.pdf> <./figures/ia-enron-email-dynamic_comparison.pdf>]
 File: figures/TorVergataLogo_no-sfondo.png Graphic file (type png)
 <use figures/TorVergataLogo_no-sfondo.png>
-Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 945.
+Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 1026.
+(pdftex.def)             Requested size: 135.15059pt x 76.09549pt.
+ [41
+
+] [42
+
+]
+File: figures/TorVergataLogo_no-sfondo.png Graphic file (type png)
+<use figures/TorVergataLogo_no-sfondo.png>
+Package pdftex.def Info: figures/TorVergataLogo_no-sfondo.png  used on input line 1062.
 (pdftex.def)             Requested size: 133.72786pt x 75.29713pt.
- [40
+ [43
 
 ]
 \tf@nav=\write6
@@ -1237,18 +1249,18 @@ Package rerunfilecheck Info: File `presentazione_torvergata_v2.out' has not chan
 (rerunfilecheck)             Checksum: DE1893BED5BD99128B92777D4705940A;833.
  ) 
 Here is how much of TeX's memory you used:
- 40481 strings out of 467363
- 936814 string characters out of 5419000
+ 40501 strings out of 467363
+ 937078 string characters out of 5419000
  1501030 words of memory out of 6000000
- 68545 multiletter control sequences out of 15000+600000
- 808424 words of font info for 252 fonts, out of 8000000 for 9000
+ 68555 multiletter control sequences out of 15000+600000
+ 808626 words of font info for 254 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,15n,123p,1082b,2621s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmbsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmssbo10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on build/presentazione_torvergata_v2.pdf (40 pages, 5431663 bytes).
+</usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmssbo10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsso9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on build/presentazione_torvergata_v2.pdf (43 pages, 5434210 bytes).
 PDF statistics:
- 680 PDF objects out of 1000 (max. 8388607)
- 453 compressed objects within 5 object streams
- 86 named destinations out of 1000 (max. 500000)
+ 696 PDF objects out of 1000 (max. 8388607)
+ 467 compressed objects within 5 object streams
+ 92 named destinations out of 1000 (max. 500000)
  114806 words of extra memory for PDF output out of 128383 (max. 10000000)
 

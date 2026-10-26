@@ -619,7 +619,6 @@ OUTPUT build/presentazione_torvergata_v2.snm
 INPUT build/presentazione_torvergata_v2.aux
 INPUT build/presentazione_torvergata_v2.out
 INPUT build/presentazione_torvergata_v2.out
-INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmbsy10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmex10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmmi12.pfb
