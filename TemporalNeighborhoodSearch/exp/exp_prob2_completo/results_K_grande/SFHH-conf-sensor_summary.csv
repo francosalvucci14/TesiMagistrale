@@ -1,0 +1,4 @@
+dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
+SFHH-conf-sensor,MiaSoluzione,3530.06,284.794,1111.78
+SFHH-conf-sensor,MiaSoluzione_NoWv,3615.61,284.785,1198.45
+SFHH-conf-sensor,Alternativa,5272.17,253.026,1043.36

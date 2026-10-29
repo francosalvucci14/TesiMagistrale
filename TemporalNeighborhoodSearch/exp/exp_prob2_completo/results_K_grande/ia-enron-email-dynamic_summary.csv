@@ -1,0 +1,4 @@
+dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
+ia-enron-email-dynamic,MiaSoluzione,19.7728,2558.3,12294.1
+ia-enron-email-dynamic,MiaSoluzione_NoWv,252.325,2556.78,42352.8
+ia-enron-email-dynamic,Alternativa,79.7652,2302.78,14503.9

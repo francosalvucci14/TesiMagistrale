@@ -1,0 +1,2 @@
+dataset,mu,tau,k,b,r,queries,groundtruth_pairs,mia_soluzione_pairs,alternativa_pairs,mia_false_negatives,alternativa_false_negatives,mia_recall_pairs_pct,alternativa_recall_pairs_pct,groundtruth_positive_queries,mia_positive_queries,alternativa_positive_queries,mia_recall_query_pct,alternativa_recall_query_pct,groundtruth_avg_enumeration_us
+chess_year,4,0.35,128,8,16,7301,8250,640,640,7610,7610,7.757576,7.757576,2703,399,399,14.761376,14.761376,5023.75

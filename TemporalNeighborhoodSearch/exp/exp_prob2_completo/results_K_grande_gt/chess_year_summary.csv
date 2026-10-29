@@ -1,0 +1,4 @@
+dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
+chess_year,MiaSoluzione,1.95676,2.6297,26.4213
+chess_year,MiaSoluzione_NoWv,1.99196,2.51149,24.2477
+chess_year,Alternativa,3.4732,2.37986,31.2841

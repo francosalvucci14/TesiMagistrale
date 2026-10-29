@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1793024337.90336 "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione_torvergata_v2.tex" "build/presentazione_torvergata_v2.pdf" "presentazione_torvergata_v2" 1793024341.91053 0
-  "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione_torvergata_v2.tex" 1793024337.69093 47865 427706b511dfa96671f2cf20d49c7b8c ""
+["pdflatex"] 1793297778.79279 "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione_torvergata_v2.tex" "build/presentazione_torvergata_v2.pdf" "presentazione_torvergata_v2" 1793297784.39262 0
+  "/home/acronimo/Documents/TesiMagistrale/PresentazioneTesi/presentazione_torvergata_v2.tex" 1793297778.55851 50164 3b5856842bca4966a9c3205123ef3558 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1202520719 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1202520719 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -311,17 +311,15 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1777593600 43785 66587115382950aca692b5f6e3c2fb74 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1791620760 5572053 e518821a04c16d896352b86436457e46 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1791963196 3520300 c80c9e111336cb34fc1e59a2e3815252 ""
-  "build/presentazione_torvergata_v2.aux" 1793024341.79939 5954 b76d5bd3f7224278e207a1af566e7145 "pdflatex"
-  "build/presentazione_torvergata_v2.nav" 1793024341.80102 3693 64999a94fac150bab6d104747c0e68f9 "pdflatex"
-  "build/presentazione_torvergata_v2.out" 1793024341.80039 833 de1893bed5bd99128b92777d4705940a "pdflatex"
+  "build/presentazione_torvergata_v2.aux" 1793297784.22435 6046 dfdfdc2f8b2dacd76160228d593cf9c3 "pdflatex"
+  "build/presentazione_torvergata_v2.nav" 1793297784.22681 3685 a19312cb0fb98da23d8250f58a73f6ee "pdflatex"
+  "build/presentazione_torvergata_v2.out" 1793297784.22558 987 cdee6cbe545c08c1a11476b56f42b927 "pdflatex"
   "figures/CollegeMsg_comparison.pdf" 1792923079.42373 26169 4c148d43ccc76ecd2bbad6992700db4a ""
   "figures/TorVergataLogo.png" 1792751588.90384 41116 28056e32e8fe1a8bd96b94c288677105 ""
   "figures/TorVergataLogo_no-sfondo.png" 1792752904.01028 34617 be407373848f0dd5feac83e9a98f8e7a ""
-  "figures/benchmark_baseline.png" 1792660526 276793 6ff0f67b52447fc9d1c5b2d35032ce0b ""
   "figures/ia-enron-email-dynamic_comparison.pdf" 1792923087.2468 26400 9364b6f88af516b5c73fb207c81961fc ""
-  "figures/pruning_enron.pdf" 1792401910 2364168 38be9c60f826b893c26491f671400a19 ""
-  "figures/pruning_sfhh.pdf" 1792401910 2364168 c4f80cbcea25b0c85b3628cf0fc66638 ""
-  "presentazione_torvergata_v2.tex" 1793024337.69093 47865 427706b511dfa96671f2cf20d49c7b8c ""
+  "figures/ia-enron-email-dynamic_pruning_analysis_only_bound.png" 1793099677.21092 792143 fc2029de9da0db2fb43f7da98a86e3ba ""
+  "presentazione_torvergata_v2.tex" 1793297778.55851 50164 3b5856842bca4966a9c3205123ef3558 ""
   (generated)
   "build/presentazione_torvergata_v2.aux"
   "build/presentazione_torvergata_v2.log"

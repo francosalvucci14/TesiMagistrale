@@ -203,8 +203,8 @@
   \centering
   \begin{overlayarea}{\linewidth}{.70cm}
     \centering
-    \only<2-3>{\chip{$\sigma=\text{intersezione}$}}
-    \only<4>{\chip{$\sigma=\text{Jaccard}$}}
+    \only<3>{\chip{$\sigma=\text{intersezione}$}}
+    \only<4>{\chip{$\sigma=\text{Jaccard}$}\\[2pt]$J(X,Y)=\frac{|X\cap Y|}{|X\cup Y|}$}
   \end{overlayarea}
 \end{columns}
 \vspace{.20cm}
@@ -231,24 +231,28 @@
   \end{tikzpicture}
   \column{.49\textwidth}
   \centering\small\bfseries Insiemi piccoli, sovrapposizione elevata
-  \begin{tikzpicture}[x=1cm,y=.90cm]
+   \begin{tikzpicture}[x=1cm,y=.90cm]
     \path[use as bounding box] (.10,-.05) rectangle (6.3,3.70);
-    % Stessa figura originale: gli insiemi sono piu' in basso e i valori a destra.
-    \fill[gold!17] (1.35,1.74) circle (.94);
-    \fill[teal!13] (2.12,1.74) circle (.94);
-    \begin{scope}\clip (1.35,1.74) circle (.94);
-      \fill[teal!35] (2.12,1.74) circle (.94);
+    % Totali sempre visibili DENTRO i rispettivi cerchi.
+    % Cardinalita' dell'intersezione rivelata all'overlay successivo.
+    \fill[gold!17] (1.64,1.70) circle (1.32);
+    \fill[teal!13] (2.86,1.70) circle (1.32);
+    \begin{scope}\clip (1.64,1.70) circle (1.32);
+      \fill[teal!35] (2.86,1.70) circle (1.32);
     \end{scope}
-    \draw[gold,thick] (1.35,1.74) circle (.94);
-    \draw[teal,thick] (2.12,1.74) circle (.94);
-    \node[font=\scriptsize,text=muted] at (1.74,3.03) {$|C|=|D|=10$};
-    \node[font=\small] at (.76,1.74) {$2$};
-    \node[font=\small] at (2.73,1.74) {$2$};
-    \node[font=\small\bfseries] at (1.73,1.74) {$8$};
-    \visible<3->{\node[font=\small\bfseries,text=teal!85!black,anchor=west]
-      at (3.37,2.24) {$|C\cap D|=8$};}
-    \visible<4>{\node[font=\small\bfseries,text=teal!85!black,anchor=west]
-      at (3.37,1.30) {$J(C,D)=\dfrac{8}{12}\simeq0.67$};}
+    \draw[gold,thick] (1.64,1.70) circle (1.32);
+    \draw[teal,thick] (2.86,1.70) circle (1.32);
+    \node[font=\small\bfseries,text=ink] at (1.18,2.44) {$|C|=10$};
+    \node[font=\small\bfseries,text=ink] at (3.32,2.44) {$|D|=10$};
+    \visible<3->{
+      % \node[font=\normalsize\bfseries] at (.95,1.70) {$2$};
+      % \node[font=\normalsize\bfseries] at (3.54,1.70) {$2$};
+      \node[font=\large\bfseries,text=ink] at (2.25,1.70) {$8$};
+      \node[font=\small\bfseries,text=teal!85!black,anchor=west]
+        at (4.27,2.25) {$|C\cap D|=8$};
+    }
+    \visible<4>{\node[font=\small\bfseries,text=teal!85!black,align=center]
+      at (5.19,1.13) {$J(C,D)$\\[2pt]$\displaystyle=\frac{8}{12}\simeq0.67$};}
   \end{tikzpicture}
   \end{columns}
   \vspace{-.11cm}
@@ -264,23 +268,36 @@
 \end{frame} 
 
 % 04 — LSH introduttiva, senza dettagli di bande
-\begin{frame}[t]{Dalla ricerca esaustiva al filtro LSH}
-\vspace{.11cm}
-\begin{center}\large\bfseries Schema \textit{filter-and-verify}\end{center}
+\begin{frame}[t]{Neighborhood Search statico: filter \& verify}
+% \vspace{.05cm}
+% {\small Data la query $S$, cerchiamo un vertice $u$ con $\sigma(S,N(u))\geq\tau$.\par}
 \vspace{.24cm}
-\centering
-\begin{tikzpicture}[node distance=.50cm]
-  \node[block,text width=3.05cm,minimum height=1.58cm](a){\textbf{Firma MinHash}\\[7pt]\small Rappresentazione compatta dei vicinati};
-  \node[altblock,right=of a,text width=3.05cm,minimum height=1.58cm](b){\textbf{Filtro LSH}\\[7pt]\small Seleziona poche coppie promettenti};
-  \node[block,right=of b,text width=3.05cm,minimum height=1.58cm](c){\textbf{Verifica}\\[7pt]\small Confronta la firma completa};
-  \draw[arr](a)--(b);\draw[arr](b)--(c);
+\centering{\color{teal}\large\bfseries Soluzione \emph{filter \& verify}}\par
+\vspace{.23cm}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \path[use as bounding box] (.0,-.20) rectangle (13.0,2.20);
+  \node[block,minimum width=1.15cm,minimum height=.95cm] (query) at (1.00,1.03)
+    {\textbf{Query}\\[3pt]$S$};
+  \node[block,text width=1.90cm,minimum height=1.15cm] (mh) at (3.50,1.03)
+    {\textbf{MinHash}\\[4pt]\scriptsize Firma compatta dei vicinati};
+  \node[altblock,text width=1.90cm,minimum height=1.15cm] (lsh) at (6.23,1.03)
+    {\textbf{Filtro LSH}\\[4pt]\scriptsize Seleziona i vertici promettenti};
+  \node[block,text width=1.90cm,minimum height=1.15cm] (cand) at (8.95,1.03)
+    {\textbf{Candidati}\\[4pt]$C(S)\subseteq V$};
+  \node[altblock,text width=2.02cm,minimum height=1.15cm] (verify) at (11.76,1.03)
+    {\textbf{Verifica}\\[4pt]\scriptsize Controllo della soglia $\tau$};
+  \draw[arr] (query.east)--(mh.west);
+  \draw[arr] (mh.east)--(lsh.west);
+  \draw[arr] (lsh.east)--(cand.west);
+  \draw[arr] (cand.east)--(verify.west);
 \end{tikzpicture}
-\vspace{.49cm}
+\vspace{.12cm}
 \begin{columns}[T,onlytextwidth]
-\column{.49\textwidth}\centering\panel{5.55cm}{\textbf{Vantaggio}\\[6pt]\small Evitiamo il confronto con tutti i vertici.}
-\column{.49\textwidth}\centering\panel{5.55cm}{\textbf{Compromesso}\\[6pt]\small Il filtro è probabilistico: possibili falsi negativi.}
+\column{.49\textwidth}
+\centering\panel{5.55cm}{\textbf{Filter}\\[6pt]\small LSH seleziona i candidati, ma può perdere alcune risposte.}
+\column{.49\textwidth}
+\centering\panel{5.55cm}{\textbf{Verify}\\[6pt]\small Verifichiamo quali candidati superano la soglia di similarità.}
 \end{columns}
-\vspace{.09cm}
 \end{frame}
 
 % 05 — Le reti evolvono nel tempo
@@ -309,7 +326,7 @@
   \node[font=\small] at (2.95,.45) {$N^{t_3}(v)=\{b,c\}$};
 \end{tikzpicture}
 \end{columns}
-\vspace{.12cm}
+\vspace{.22cm}
 \centering\chip{Aggregare tutto in un grafo statico fa perdere l'informazione temporale.}
 \end{frame}
 
@@ -363,16 +380,16 @@ $\textcolor{red!80!black}{\boldsymbol{\mu}\geq0}$}.
 \\[3pt]
 
 \textbf{Query:}
-un nodo $v\in V$
+$S\subseteq V$
 \only<3->{e
 $\textcolor{red!80!black}{\boldsymbol{\mu}\geq0}$}.
 \\[3pt]
 
 \textbf{Goal:}
-trovare $u\neq v$ e
+trovare $u\in V$ e
 $I=[t,t+\textcolor{red!80!black}{\boldsymbol{\mu}}]$
 tali che
-\chip{$J(N^I(v),N^I(u))\geq\tau$}.
+\chip{$J(S,N^I(u))\geq\tau$}.
 
 \par}
 \end{overlayarea}
@@ -481,6 +498,8 @@ tali che
 \end{columns}
 \end{frame}
 
+\sectslide{01}{Contributi della tesi}{LSH unificato, oracolo $\mathcal O$, pruning temporale\\e rappresentazione geometrica}
+
 % 08 — Contributi variante 1, alto livello
 \begin{frame}[t]{Contributo 1: LSH su intervalli di ampiezza fissa}
 \vspace{.12cm}
@@ -488,7 +507,7 @@ tali che
 \column{.52\textwidth}
 \begin{itemize}\setlength\itemsep{13pt}
   \item \textbf{Adattamento di LSH} alle coppie nodo--finestra.
-  \item \textbf{Pruning} delle finestre inattive tramite $W(v)$.
+  \item \textbf{Pruning $W(v)$} delle finestre inattive.
   \item \textbf{Oracolo $\mathcal O$} per recuperare sketch senza ricostruire vicinati.
   \item \textbf{Analisi teorica} e confronto sperimentale sui grafi reali.
 \end{itemize}
@@ -525,8 +544,8 @@ tali che
   \visible<2->{
     \fill[ice] (3.06,2.26) circle (2.03cm);
     \draw[teal,line width=1.65pt] (3.06,2.26) circle (2.03cm);
-    \node[font=\scriptsize\bfseries,text=teal!80!black,align=center] at (3.06,3.70)
-      {Oracolo: sovrainsieme\\candidati};
+    \node[font=\scriptsize\bfseries,text=teal!80!black,align=center] at (3.06,3.60)
+      {Euristica: sovrainsieme\\candidati};
   }
   \fill[teal!21] (3.06,2.26) circle (1.08cm);
   \draw[ink!82,line width=1.4pt] (3.06,2.26) circle (1.08cm);
@@ -573,41 +592,24 @@ tali che
     \draw[arr,rounded corners=5pt] (3.00,3.53) -- (3.00,4.12) -- (6.65,4.12) -- (7.34,3.40);
     \draw[-{Stealth[length=2.3mm]},line width=1.2pt,draw=gold] (5.33,2.33) -- (7.34,1.71);
     \node[draw=teal,fill=ice,rounded corners=5pt,text width=4.33cm,align=left,inner sep=7pt] at (9.80,3.39)
-      {\textbf{Tabella $H_1$}\\[-1pt]\scriptsize bucket $h_1(2,8,1,6)$: $\{A,B\}$};
+      {\textbf{Tabella $H_1$}\\[-1pt]\scriptsize bucket $H_1[(2,8,1,6)]$: $\{A,B\}$};
     \node[draw=gold,fill=gold!10,rounded corners=5pt,text width=4.33cm,align=left,inner sep=7pt] at (9.80,1.68)
-      {\textbf{Tabella $H_2$}\\[-1pt]\scriptsize $h_2(5,4,7,2):\{A\}$\\[-1pt]
-       \scriptsize $h_2(9,3,4,1):\{B\}$};
+      {\textbf{Tabella $H_2$}\\[-1pt]\scriptsize $H_2[(5,4,7,2)]:\{A\}$\\[-1pt]
+       \scriptsize $H_2[(9,3,4,1)]:\{B\}$};
   }
   \visible<3>{
     \node[draw=teal,fill=ice,rounded corners=4pt,inner sep=7pt,font=\small\bfseries]
       at (3.17,.48) {Collisione in $H_1$ $\Rightarrow$ coppia candidata};
   }
-  \visible<4->{
-    % Nella fase finale le tabelle lasciano spazio a una curva a S leggibile.
-    \node[font=\large\bfseries,text=teal!80!black] at (3.15,.58)
-      {$P(s)=1-(1-s^r)^b$};
-    \node[font=\small\bfseries,text=teal!80!black] at (10.20,4.10)
-      {Probabilità di collisione};
-    \draw[-{Stealth[length=2mm]},thick,muted] (7.72,1.25)--(12.73,1.25)
-      node[below,font=\scriptsize] {$s$};
-    \draw[-{Stealth[length=2mm]},thick,muted] (7.72,1.25)--(7.72,3.83)
-      node[above,font=\scriptsize] {$P(s)$};
-    \draw[teal,line width=2.0pt]
-      plot[domain=0:1,samples=90]
-      ({7.75+4.70*\x},{1.27+2.37*(1-(1-(\x)^4)^2)});
-    \node[font=\scriptsize,text=muted] at (7.88,1.01) {$0$};
-    \node[font=\scriptsize,text=muted] at (12.43,1.01) {$1$};
-    \node[font=\scriptsize,text=muted,anchor=east] at (7.65,3.65) {$1$};
-  }
 \end{tikzpicture}
 \end{frame}
 
 % 12 — Adattamento LSH
-\begin{frame}[t]{Adattamento temporale: $b$ tabelle condivise}
+\begin{frame}[t]{Adattamento temporale: $b$ tabelle condivise e doppia chiave}
 \vspace{.06cm}
 \centering
 \begin{tikzpicture}[node distance=.38cm]
-  \node[block,text width=2.15cm,minimum height=1.17cm](a){\textbf{Nodo e finestra}\\[4pt]$(v,t)$, $t\in W(v)$};
+  \node[block,text width=2.15cm,minimum height=1.17cm](a){\textbf{Nodo e istante}\\[4pt]$(v,t)$, $t\in W(v)$};
   \node[altblock,right=of a,text width=2.15cm,minimum height=1.17cm](b){\textbf{Oracolo $\mathcal O$}\\[4pt]$S(v,t)$};
   \node[block,right=of b,text width=2.15cm,minimum height=1.17cm](c){\textbf{$b$ bande}\\[4pt]$B_j(v,t)$};
   \node[altblock,right=of c,text width=2.63cm,minimum height=1.17cm](d){\textbf{Chiave LSH}\\[4pt]$(\operatorname{Hash}_j(B_j),t)$};
@@ -641,72 +643,68 @@ tali che
 \vspace{.01cm}
 \end{frame}
 
-\begin{frame}[t]{Oracolo $\mathcal O$: recupero efficiente degli sketch}
-\vspace{.05cm}
-\begin{columns}[T,onlytextwidth]
-\column{.57\textwidth}
-\centering
-\begin{tikzpicture}[x=.91cm,y=.91cm]
-\tikzset{treen/.style={draw=teal!50,fill=cloud,rounded corners=5pt,minimum width=2.0cm,minimum height=.73cm,align=center,font=\scriptsize}}
-\node[treen] (r) at (4.25,5.2) {$[t_1,t_4]$\\$S_{1,4}$};
-\node[treen] (a) at (2.0,3.65) {$[t_1,t_2]$\\$S_{1,2}$};
-\node[treen] (b) at (6.5,3.65) {$[t_3,t_4]$\\$S_{3,4}$};
-\foreach \nam/\x/\idx in {c/1/1,d/3/2,e/5.5/3,f/7.5/4}{\node[treen,minimum width=1.35cm](\nam) at (\x,2.02) {$S_{\idx}$};}
-\foreach \aa/\bb in {r/a,r/b,a/c,a/d,b/e,b/f}{\draw[ink!45,thick](\aa)--(\bb);}
-% Selezione progressiva dei due nodi canonici della query.
-\visible<2->{
-  \node[draw=gold,line width=1.9pt,rounded corners=6pt,fit=(d),inner sep=4pt] {};
-}
-\visible<3->{
-  \node[draw=teal,line width=1.9pt,rounded corners=6pt,fit=(b),inner sep=4pt] {};
-}
-\only<1>{\node[font=\small,align=center,text=muted] at (4.25,.91)
-  {Query $[t_2,t_4]$: cerchiamo i nodi che coprono il range};}
-\only<2>{\node[font=\small\bfseries,align=center,text=gold!80!black] at (4.25,.91)
-  {Primo blocco selezionato: $S_2$};}
-\only<3>{\node[font=\small\bfseries,align=center,text=teal] at (4.25,.91)
-  {Secondo blocco selezionato: $S_{3,4}$};}
-\only<4->{\node[font=\small\bfseries,align=center,text=teal] at (4.25,.91)
-  {Query $[t_2,t_4]$: merge di $S_2$ e $S_{3,4}$};}
-\end{tikzpicture}
-\column{.41\textwidth}
-\vspace{.55cm}
-\begin{center}
-\panel{4.85cm}{\textbf{Range Tree}\\[5pt]\small sulle date attive $\Lambda(v)$}
-\vspace{.17cm}
-\panel{4.85cm}{\textbf{Sketch MinHash}\\[5pt]\small componibili via minimi}
-\vspace{.14cm}
-{\color{teal}\bfseries $O(k\log|\Lambda(v)|)$}\\[3pt]\smallnote{Recupero dello sketch}
-\end{center}
-\end{columns}
-\vspace{-.19cm}
-\begin{center}\begin{minipage}{12.6cm}\centering\scriptsize\color{muted}
-Oracolo $\mathcal O$: building $O(k\sum_v m_v\log m_v)$; spazio $O(s\sum_v m_v)$ per sketch di dimensione $s$.\par
-Con $1$-MinHash, una RMQ recupera lo sketch in $O(1)$ (spazio $O(T)$ per nodo).
-\end{minipage}\end{center}
-\end{frame}
-
 % 13 — Pruning e caso pessimo: attenzione, nessun miglioramento asintotico
 \begin{frame}[t]{Pruning $W(v)$: meno finestre, stesso caso peggiore}
-\vspace{.04cm}
-\centering\chip{$W(v)=\{t:\ [t,t+\mu]\cap\Lambda(v)\neq\varnothing\}$}
-\vspace{.16cm}
-\begin{tikzpicture}[x=.84cm,y=.83cm]
-  \draw[rulegray,line width=1.5pt] (1.9,3.60)--(14.2,3.60);
-  \foreach \i in {2,...,14}{\draw[muted!45](\i,3.5)--(\i,3.71);\node[font=\scriptsize,text=muted] at (\i,3.30){\i};}
-  \foreach \i in {4,9,12}{\fill[teal](\i,3.6)circle(3.8pt);}
-  \node[font=\small,anchor=east]at(1.74,3.60){$\Lambda(v)$};
-  \draw[line width=9pt,rulegray] (2,1.95)--(12,1.95);
-  \foreach \l/\r in {2/4,7/9,10/12}{\draw[teal,line width=9pt](\l,1.95)--(\r,1.95);}
-  \node[font=\small,anchor=east]at(1.74,1.95){$W(v)$};
-  \node[font=\small,text=muted]at(8.0,1.13){Solo gli inizi di finestra che contengono almeno un evento};
+\vspace{.01cm}
+\centering\chip{$W(v)=\{t:\ [t,t+\mu]\cap\Lambda(v)\neq\varnothing\}$}\par
+\vspace{.10cm}
+{\small\textbf{Esempio:} $T=12$, $\mu=2$, $\Lambda(v)=\{4,9\}$.
+Una finestra si conserva soltanto se contiene un evento di $v$.\par}
+\vspace{.08cm}
+\centering
+\begin{tikzpicture}[x=.86cm,y=.75cm]
+  \path[use as bounding box] (.22,.06) rectangle (13.80,4.13);
+
+  % Riga 1: sulla linea temporale evidenziamo soltanto i due eventi.
+  \node[font=\small\bfseries,anchor=east] at (1.76,3.48) {Eventi di $v$};
+  \draw[rulegray,line width=1.5pt] (2,3.48)--(13,3.48);
+  \foreach \t in {1,...,12}{
+    \pgfmathsetmacro{\xx}{\t+1}
+    \draw[muted!45] (\xx,3.38)--(\xx,3.58);
+    \node[font=\scriptsize,text=muted] at (\xx,3.16) {\t};
+  }
+  \foreach \t in {4,9}{
+    \pgfmathsetmacro{\xx}{\t+1}
+    \fill[teal] (\xx,3.48) circle (4.4pt);
+    \node[font=\scriptsize\bfseries,text=teal!85!black] at (\xx,3.86) {evento};
+  }
+
+  % Riga 2: un evento a s rende valide le partenze da s-mu a s.
+  \node[font=\small\bfseries,anchor=east] at (1.76,2.20) {Partenze valide};
+  \draw[-{Stealth[length=2.4mm]},teal!75,line width=1.15pt]
+    (5,3.38) .. controls (5,2.83) and (4,2.83) .. (4,2.61);
+  \draw[-{Stealth[length=2.4mm]},teal!75,line width=1.15pt]
+    (10,3.38) .. controls (10,2.83) and (9,2.83) .. (9,2.61);
+  \node[draw=teal,fill=ice,rounded corners=5pt,inner xsep=10pt,inner ysep=6pt,
+    font=\small\bfseries] at (4,2.26) {$4\Rightarrow t\in\{2,3,4\}$};
+  \node[draw=teal,fill=ice,rounded corners=5pt,inner xsep=10pt,inner ysep=6pt,
+    font=\small\bfseries] at (9,2.26) {$9\Rightarrow t\in\{7,8,9\}$};
+
+  % Riga 3: tutti i possibili inizi di finestra; verdi quelli da conservare.
+  \node[font=\small\bfseries,anchor=east] at (1.76,1.11) {Inizio $t$};
+  \foreach \t in {1,5,6,10}{
+    \pgfmathsetmacro{\xx}{\t+1}
+    \node[draw=rulegray,fill=cloud,rounded corners=3pt,
+      minimum width=.64cm,minimum height=.55cm,font=\small]
+      at (\xx,1.11) {\t};
+  }
+  \foreach \t in {2,3,4,7,8,9}{
+    \pgfmathsetmacro{\xx}{\t+1}
+    \node[draw=teal,fill=ice,rounded corners=3pt,
+      minimum width=.64cm,minimum height=.55cm,font=\small\bfseries]
+      at (\xx,1.11) {\t};
+  }
+  \node[font=\scriptsize\bfseries,text=teal!85!black] at (5.10,.34)
+    {Verde: conserva};
+  \node[font=\scriptsize\bfseries,text=muted] at (10.00,.34)
+    {Grigio: scarta};
 \end{tikzpicture}
-\vspace{.05cm}
-\centering\chip{$\displaystyle |W(v)|\leq\min\{T-\mu,(\mu+1)|\Lambda(v)|\}$}\par
-\vspace{.15cm}
-\begin{center}\begin{minipage}{12.1cm}\centering
-\smallnote{\textbf{Il caso peggiore non migliora}: se $|W(v)|=T-\mu$, si processano tutte le finestre, come con $T-\mu$ indici LSH statici. Il pruning è utile quando l'attività temporale è sparsa.}
-\end{minipage}\end{center}
+\vspace{-.07cm}
+\centering\chip{$10$ finestre possibili $\;\longrightarrow\;$ $|W(v)|=6$: $4$ finestre scartate}\par
+\vspace{.35cm}
+{\small $\displaystyle |W(v)|\leq\min\{T-\mu,(\mu+1)|\Lambda(v)|\}$}\par
+\vspace{.08cm}
+\smallnote{\textbf{Caso peggiore invariato}: se ogni finestra contiene un evento, $|W(v)|=T-\mu$. Il pruning è utile se l'attività è temporalmente sparsa.}
 \end{frame}
 
 % 14 — Bound teorici recuperati dalla prima presentazione
@@ -738,7 +736,7 @@ $\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[10pt]
 % 14 — Valutazione di W sui dataset reali
 \begin{frame}[t]{Il pruning nei dataset reali}
 \vspace{.04cm}
-\centering\small\bfseries Percentuale media di finestre scartate con $W(v)$
+\centering\small\bfseries Percentuale media di finestre scartate con $W(v)$, su $T-\mu$ finestre totali
 \begin{tikzpicture}
 \begin{axis}[xbar,width=12.1cm,height=4.90cm,xmin=0,xmax=111,grid=major,
   symbolic y coords={SFHH,chess,CollegeMsg,Facebook,Enron},ytick=data,
@@ -759,74 +757,264 @@ $\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[10pt]
 \end{frame}
 
 % Approfondimento 1 — Grafico originale pruning_analysis su SFHH
-\begin{frame}[t]{Pruning su SFHH-conf-sensor: guadagno limitato}
-\vspace{.03cm}
-\begin{center}
-  \includegraphics[width=.94\linewidth,height=4.72cm,keepaspectratio]{figures/pruning_sfhh.pdf}
-\end{center}
-\vspace{-.09cm}
-\begin{center}
-  \chip{$10.1\%$ delle finestre eliminate}
-  \qquad\chip{Guadagno medio $1.19\times$}
-\end{center}
-\vspace{-.01cm}
-\smallnote{Con eventi distribuiti su molti istanti temporali, $W(v)$ rimane vicino all'insieme delle finestre ammissibili.}
-\end{frame}
+% \begin{frame}[t]{Pruning su SFHH-conf-sensor: guadagno limitato}
+% \vspace{.03cm}
+% \begin{center}
+%   \includegraphics[width=.94\linewidth,height=4.72cm,keepaspectratio]{figures/pruning_sfhh.pdf}
+% \end{center}
+% \vspace{-.09cm}
+% \begin{center}
+%   \chip{$10.1\%$ delle finestre eliminate}
+%   \qquad\chip{Guadagno medio $1.19\times$}
+% \end{center}
+% \vspace{-.01cm}
+% \smallnote{Con eventi distribuiti su molti istanti temporali, $W(v)$ rimane vicino all'insieme delle finestre ammissibili.}
+% \end{frame}
 
 % Approfondimento 2 — Grafico originale pruning_analysis su Enron
 \begin{frame}[t]{Pruning su Enron-email: guadagno elevato}
 \vspace{.03cm}
 \begin{center}
-  \includegraphics[width=.94\linewidth,height=4.72cm,keepaspectratio]{figures/pruning_enron.pdf}
+  \includegraphics[width=.94\linewidth,height=4.72cm,keepaspectratio]{figures/ia-enron-email-dynamic_pruning_analysis_only_bound.png}
 \end{center}
 \vspace{-.09cm}
 \begin{center}
   \chip{$98.2\%$ delle finestre eliminate}
-  \qquad\chip{Guadagno medio $77.41\times$}
+  \qquad\chip{Da $7900$ a $158$ finestre in media}
 \end{center}
 \vspace{-.01cm}
 \smallnote{La concentrazione degli eventi in pochi istanti consente di escludere molte finestre senza attività.}
 \end{frame}
 
 % 15 — Benchmark prestazionale sulle query
-\begin{frame}[t]{Prestazioni: Brute Force contro LSH+$W$}
-\vspace{.01cm}
-\begin{center}\small\bfseries Parametri degli esperimenti: $k=128,\quad b=8,\quad r=16,\quad\tau=0.35$.\end{center}
-\vspace{-.16cm}
-\begin{center}
-\includegraphics[width=.98\linewidth,height=4.45cm,keepaspectratio]{figures/benchmark_baseline.png}
-\end{center}
-\vspace{-.15cm}
-\begin{center}
-\chip{Enron: $8431\times$ più veloce}\quad\chip{Facebook: $4287\times$ più veloce}
-\end{center}
-\smallnote{Enron: BF $82\,757.90\,\mu$s, LSH+$W$ $9.82\,\mu$s. La query booleana si arresta al primo esito positivo.}
-\end{frame}
+% \begin{frame}[t]{Prestazioni: Brute Force contro LSH+$W$}
+% \vspace{.01cm}
+% \begin{center}\small\bfseries Parametri degli esperimenti: $k=128,\quad b=8,\quad r=16,\quad\tau=0.35$.\end{center}
+% \vspace{-.16cm}
+% \begin{center}
+% \includegraphics[width=.98\linewidth,height=4.45cm,keepaspectratio]{figures/benchmark_baseline.png}
+% \end{center}
+% \vspace{-.15cm}
+% \begin{center}
+% \chip{Enron: $8431\times$ più veloce}\quad\chip{Facebook: $4287\times$ più veloce}
+% \end{center}
+% \smallnote{Enron: BF $82\,757.90\,\mu$s, LSH+$W$ $9.82\,\mu$s. La query booleana si arresta al primo esito positivo.}
+% \end{frame}
 
 % 16 — Confronto con altre strategie
+% \begin{frame}[t]{Qual è il contributo del pruning e dell'indice unico?}
+% \vspace{.10cm}
+% \begin{columns}[T,onlytextwidth]
+% \column{.54\textwidth}
+% \centering\small\bfseries Tempo medio di query su Enron ($\mu$s)
+% \begin{tikzpicture}
+% \begin{axis}[ybar,width=7.55cm,height=6.65cm,ymin=0,ymax=112,grid=major,
+%   symbolic x coords={NostraSoluzione,Baseline,LSH-W},xtick=data,bar width=22pt,
+%   nodes near coords,every node near coord/.append style={font=\small},
+%   enlarge x limits=.24]
+%   \addplot[fill=teal!77,draw=teal] coordinates {(NostraSoluzione,9.82) (LSH-W,91.88) (Baseline,34.64)};
+% \end{axis}
+% \end{tikzpicture}
+% \column{.43\textwidth}
+% \vspace{.36cm}
+% \panel{5.1cm}{\textbf{NostraSoluzione}\\[5pt]\small Indice unico con pruning.}
+% \vspace{.11cm}
+% \panel{5.1cm}{\textbf{Baseline}\\[5pt]\small Indici indipendenti per ogni finestra.}
+% \vspace{.11cm}
+% \panel{5.1cm}{\textbf{LSH--$W$}\\[5pt]\small Stesso indice, senza pruning.}
+% \end{columns}
+% \vspace{-.07cm}
+% \end{frame}
 \begin{frame}[t]{Qual è il contributo del pruning e dell'indice unico?}
 \vspace{.10cm}
+
 \begin{columns}[T,onlytextwidth]
+
 \column{.54\textwidth}
 \centering\small\bfseries Tempo medio di query su Enron ($\mu$s)
+
 \begin{tikzpicture}
-\begin{axis}[ybar,width=7.55cm,height=4.65cm,ymin=0,ymax=112,grid=major,
-  symbolic x coords={LSH+W,LSH-W,Alt+W},xtick=data,bar width=22pt,
-  nodes near coords,every node near coord/.append style={font=\small},
-  enlarge x limits=.24]
-  \addplot[fill=teal!77,draw=teal] coordinates {(LSH+W,9.82) (LSH-W,91.88) (Alt+W,34.64)};
+
+\begin{axis}[
+    ybar,
+    width=7.55cm,
+    height=6.65cm,
+    ymin=0,
+    ymax=125,
+    grid=major,
+    symbolic x coords={NostraSoluzione,Baseline,LSH-W},
+    xtick=data,
+    bar width=22pt,
+    enlarge x limits=.24
+]
+
+% =========================================================
+% BARRE — SEMPRE VISIBILI
+% =========================================================
+
+\addplot[
+    fill=teal!77,
+    draw=teal
+] coordinates {
+    (NostraSoluzione,9.82)
+    (Baseline,34.64)
+    (LSH-W,91.88)
+};
+
+
+% =========================================================
+% ANIMAZIONE 2 — SPEEDUP VS BASELINE (ROSSO)
+% =========================================================
+
+\only<2->{
+
+    \draw[
+        red!85!black,
+        opacity=.70,
+        line width=1.5pt,
+        dash pattern=on 4pt off 2.5pt
+    ]
+        ([xshift=10pt]axis cs:NostraSoluzione,9.82)
+
+        -- ([xshift=16pt]axis cs:NostraSoluzione,9.82)
+
+        -- ([xshift=16pt]axis cs:NostraSoluzione,55)
+
+        -- node[
+            midway,
+            above=4pt,
+            fill=white,
+            rounded corners=2pt,
+            inner sep=3pt,
+            font=\small\bfseries,
+            text=red!85!black,
+            opacity=1
+        ] {$3.5\times$}
+        ([xshift=-10pt]axis cs:Baseline,55)
+
+        -- ([xshift=-10pt]axis cs:Baseline,34.64);
+
+
+    % Punti di contatto rossi
+    \fill[red!85!black]
+        ([xshift=10pt]axis cs:NostraSoluzione,9.82)
+        circle (1.8pt);
+
+    \fill[red!85!black]
+        ([xshift=-10pt]axis cs:Baseline,34.64)
+        circle (1.8pt);
+}
+
+
+% =========================================================
+% ANIMAZIONE 3 — SPEEDUP VS LSH-W (BLU)
+% =========================================================
+
+\only<3->{
+
+    \draw[
+        blue!80!black,
+        opacity=.70,
+        line width=1.5pt,
+        dash pattern=on 4pt off 2.5pt
+    ]
+        ([xshift=-10pt]axis cs:NostraSoluzione,9.82)
+
+        -- ([xshift=-16pt]axis cs:NostraSoluzione,9.82)
+
+        -- ([xshift=-16pt]axis cs:NostraSoluzione,108)
+
+        -- node[
+            midway,
+            above=4pt,
+            fill=white,
+            rounded corners=2pt,
+            inner sep=3pt,
+            font=\small\bfseries,
+            text=blue!80!black,
+            opacity=1
+        ] {$9.4\times$}
+        ([xshift=-10pt]axis cs:LSH-W,108)
+
+        -- ([xshift=-10pt]axis cs:LSH-W,91.88);
+
+
+    % Punti di contatto blu
+    \fill[blue!80!black]
+        ([xshift=-10pt]axis cs:NostraSoluzione,9.82)
+        circle (1.8pt);
+
+    \fill[blue!80!black]
+        ([xshift=-10pt]axis cs:LSH-W,91.88)
+        circle (1.8pt);
+}
+
+
+% =========================================================
+% VALORI DELLE BARRE — SEMPRE VISIBILI
+% Disegnati per ultimi per garantirne la leggibilità
+% =========================================================
+
+\node[
+    font=\small,
+    fill=white,
+    inner sep=1.5pt,
+    anchor=south
+] at ([yshift=3pt]axis cs:NostraSoluzione,9.82)
+    {9.82};
+
+\node[
+    font=\small,
+    fill=white,
+    inner sep=1.5pt,
+    anchor=south
+] at ([yshift=3pt]axis cs:Baseline,34.64)
+    {34.64};
+
+\node[
+    font=\small,
+    fill=white,
+    inner sep=1.5pt,
+    anchor=south
+] at ([yshift=3pt]axis cs:LSH-W,91.88)
+    {91.88};
+
 \end{axis}
+
 \end{tikzpicture}
+
+
+% =========================================================
+% DESCRIZIONE DELLE SOLUZIONI — SEMPRE VISIBILE
+% =========================================================
+
 \column{.43\textwidth}
+
 \vspace{.36cm}
-\panel{5.1cm}{\textbf{LSH+$W$}\\[5pt]\small Indice unico con pruning.}
+
+\panel{5.1cm}{
+    \textbf{NostraSoluzione}\\[5pt]
+    \small Indice unico con pruning.
+}
+
 \vspace{.11cm}
-\panel{5.1cm}{\textbf{LSH--$W$}\\[5pt]\small Stesso indice, senza pruning.}
+
+\panel{5.1cm}{
+    \textbf{Baseline}\\[5pt]
+    \small Indici indipendenti per ogni finestra.
+}
+
 \vspace{.11cm}
-\panel{5.1cm}{\textbf{Alt+$W$}\\[5pt]\small Indici indipendenti per finestra.}
+
+\panel{5.1cm}{
+    \textbf{LSH--$W$}\\[5pt]
+    \small Stesso indice, senza pruning.
+}
+
 \end{columns}
+
 \vspace{-.07cm}
-\smallnote{Il preprocessing e la memoria ausiliaria non sono trascurabili. Su SFHH il pruning non migliora il tempo di query.}
+
 \end{frame}
 
 % 17 — Richiesta esplicita: qualità risposte e falsi negativi
@@ -834,15 +1022,14 @@ $\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[10pt]
 \vspace{.07cm}
 \begin{columns}[T,onlytextwidth]
 \column{.73\textwidth}
-\centering\small\bfseries Recall di LSH+$W$ rispetto alla Brute Force
+\centering\small\bfseries Recall della soluzione rispetto alla Ground Truth
 \begin{tikzpicture}
 \begin{axis}[ybar,width=10.2cm,height=4.9cm,ymin=0,ymax=110,grid=major,bar width=19pt,
- symbolic x coords={chess,SFHH,College,Facebook,Enron},xtick=data,
+ symbolic x coords={College,Facebook,Enron},xtick=data,
  ylabel={Recall (\%)},enlarge x limits=.14,
  nodes near coords,point meta=explicit symbolic,
  every node near coord/.append style={font=\scriptsize}]
  \addplot[fill=coral!80,draw=coral] coordinates {
-   (chess,12.17) [12.17\%] (SFHH,31.01) [31.01\%]
    (College,67.31) [67.31\%] (Facebook,93.32) [93.32\%]
    (Enron,98.07) [98.07\%]};
 \end{axis}
@@ -851,45 +1038,72 @@ $\displaystyle O\!\left(w_v(k\log m_v+b)+kC_v\right)$\\[10pt]
 \vspace{.50cm}
 \panel{2.8cm}{\textbf{Falsi negativi}\\[7pt]\scriptsize Il filtro può scartare nodi con similarità sufficiente.}
 \vspace{.24cm}
-\panel{2.8cm}{\textbf{Recall}\\[7pt]$\displaystyle \frac{|B\cap L|}{|B|}$}
+% \panel{2.8cm}{\textbf{Recall}\\[7pt]$\displaystyle \frac{|B\cap L|}{|B|}$}
+\panel{2.8cm}{\textbf{Dati}\\[5pt]$\displaystyle k=128,b=8,r=16,\tau=0.35$}
 \end{columns}
 \vspace{.02cm}
-\smallnote{Confronto con BF sulle \textbf{medesime firme MinHash}. Zero falsi positivi rispetto alla BF nel campione.}
+\smallnote{Ground Truth calcolata tramite \textbf{Ricerca Esaustiva}, sulle medesime firme MinHash. Zero falsi posiviti}
 \end{frame}
 
+% variante 2 spostata dopo le conclusioni per questioni di tempo
 % 18 — Separatore variante 2
 \sectslide{03}{Variante 2: filtro geometrico}{Una soluzione euristica per ampiezze variabili}
+% 21 — Risultati empirici sul numero di candidati: le figure originali dell'esperimento
+\begin{frame}[t]{Il filtro euristico restituisce pochi candidati in pratica}
+\vspace{.04cm}
+\begin{columns}[T,onlytextwidth]
+\column{.49\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=4.95cm,keepaspectratio]{figures/CollegeMsg_comparison.pdf}\\[-2pt]
+{\small\color{teal}\bfseries 32.8--64.4 candidati su 1\,899 nodi}
+\column{.49\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=4.95cm,keepaspectratio]{figures/ia-enron-email-dynamic_comparison.pdf}\\[-2pt]
+{\small\color{teal}\bfseries 218.6--229.8 candidati su 87\,273 nodi}
+\end{columns}
+\vspace{.20cm}
+\smallnote{Esperimento sul solo filtro $C_1(v,\mu)$. Non misura il costo della verifica, la recall o il tempo della query completa. I nodi ripetuti in più finestre si contano una sola volta.}
+\end{frame}
 
-% % 19 — T^2 intervalli raggruppati in T rettangoli
-% \begin{frame}[t]{Dagli intervalli ai rettangoli geometrici}
-% \vspace{-.14cm}
-% \begin{columns}[T,onlytextwidth]
-% \column{.52\textwidth}
-% \centering
-% \begin{tikzpicture}[x=.83cm,y=.68cm]
-%   \draw[-{Stealth},thick,muted](.5,.52)--(6.4,.52)node[below,font=\small]{$\alpha$};
-%   \draw[-{Stealth},thick,muted](.5,.52)--(.5,6.1)node[left,font=\small]{$\beta$};
-%   \fill[ice] (1.2,2.85) rectangle (2.7,5.0);
-%   \draw[teal,thick] (1.2,2.85) rectangle (2.7,5.0);
-%   \fill[gold!16] (2.7,3.0) rectangle (4.2,5.65);
-%   \draw[gold,thick] (2.7,3.0) rectangle (4.2,5.65);
-%   \fill[teal!15] (3.9,3.55) rectangle (5.65,5.65);
-%   \draw[teal!70!black,thick] (3.9,3.55) rectangle (5.65,5.65);
-%   \draw[coral,line width=1.8pt] (1.1,2.2)--(4.65,5.75);
-%   \node[font=\small,text=coral,rotate=45] at (3.12,4.66) {$D_\mu:\ \beta=\alpha+\mu$};
-%   \node[font=\scriptsize,text=muted,align=center] at (3.5,.12) {Ogni $(\alpha,\beta)$ rappresenta\\un intervallo $[\alpha,\beta]$.};
-% \end{tikzpicture}
-% \column{.46\textwidth}
-% \vspace{.34cm}
-% \panel{5.37cm}{\textbf{Idea geometrica}\\[8pt]
-% \small Il primo MinHash resta costante su famiglie di intervalli rappresentabili con rettangoli.\\[7pt]
-% $\Theta(T^2)$ intervalli $\longrightarrow$ al più $T$ rettangoli per nodo.}
-% \vspace{.22cm}
-% \panel{5.37cm}{\textbf{Query di ampiezza $\mu$}\\[8pt]
-% \small Si cercano rettangoli con la stessa etichetta che intersecano la retta $D_\mu$.}
-% \end{columns}
-% % La complessità del Range Tree è mostrata nella slide successiva.
-% \end{frame}
+
+\sectslide{04}{Conclusioni e sviluppi futuri}{Contributi, limiti sperimentali e \\direzioni di ricerca}
+% 22 — Conclusioni e sviluppi futuri
+\section{Conclusioni}
+\begin{frame}[t]{Risultati principali e sviluppi futuri}
+\vspace{.02cm}
+\begin{columns}[T,onlytextwidth]
+\column{.50\textwidth}
+\centering\panel{5.84cm}{\textbf{Ampiezza fissa}\\[4pt]
+\small Indice LSH unificato + pruning + oracolo $\mathcal O$\\[4pt]
+{\color{teal}\Large\bfseries $98.2\%$}\\[2pt]\scriptsize finestre scartate su Enron\\[8pt]
+}
+% {\color{teal}\Large\bfseries $8431\times$}\\[2pt]\scriptsize speedup di query vs BF}
+\column{.48\textwidth}
+\centering\panel{5.75cm}{\textbf{Ampiezza variabile}\\[4pt]
+\small Filtro Euristico \\[4pt]
+% {\color{teal}\Large\bfseries $\Theta(T^2)$}$\to${\color{teal}\Large\bfseries $O(T)$}\\[2pt]\scriptsize gruppi di intervalli per nodo\\[8pt]
+\small {\color{teal}\Large\bfseries $230 \quad(\approx0.26\%)$}\\[2pt]\scriptsize nodi candidati su Enron.}
+\end{columns}
+\vspace{.30cm}
+\centering
+\panel{8.6cm}{\textbf{Prossimi passi}\\[4pt]\small Completare la variante 2,\\studiare altre definizioni di Neighborhood Search\\e modificare i parametri di LSH per ottenere Recall migliori.}
+\end{frame}
+
+% 23 — Ringraziamenti
+{\setbeamertemplate{footline}{}\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[ink](current page.south west)rectangle(current page.north east);
+  \fill[teal!39!ink] ([xshift=9.0cm]current page.south west) circle (4.6cm);
+  \foreach \x/\y in {9.8/3.6,11.1/4.9,12.85/4.3,13.3/2.5,10.4/1.6}{\fill[white!75](\x,\y)circle(2.7pt);}
+  \foreach \xa/\ya/\xb/\yb in {9.8/3.6/11.1/4.9,11.1/4.9/12.85/4.3,12.85/4.3/13.3/2.5,13.3/2.5/10.4/1.6,10.4/1.6/9.8/3.6}{\draw[white!45,thick](\xa,\ya)--(\xb,\yb);}
+  \node[anchor=south west,inner sep=4pt] at ([xshift=-.13cm,yshift=-.38cm]current page.south west)
+    {\includegraphics[width=4.7cm]{figures/TorVergataLogo_no-sfondo.png}};
+\end{tikzpicture}
+\vspace{2.2cm}
+{\color{white}\fontsize{37}{45}\selectfont\bfseries Grazie per l'attenzione!}\par\vspace{.42cm}
+{\color{bright}\Large Franco Salvucci}\par\vspace{.19cm}
+{\color{white!80}\small Il Problema del Neighborhood Search su Grafi Temporali}
+\end{frame}}
 
 % 19 — T^2 intervalli raggruppati in T rettangoli
 \begin{frame}[t]{Dagli intervalli ai rettangoli geometrici}
@@ -1005,60 +1219,5 @@ $\displaystyle O\!\left(T\log^3nT+M\right)$\\[12pt]}
 \vspace{.17cm}
 \smallnote{Non esiste un bound non banale sul numero di candidati $M$: la selettività del filtro dipende dai dati e dalla permutazione MinHash.}
 \end{frame}
-
-% 21 — Risultati empirici sul numero di candidati: le figure originali dell'esperimento
-\begin{frame}[t]{Il filtro euristico restituisce pochi candidati in pratica}
-\vspace{.04cm}
-\begin{columns}[T,onlytextwidth]
-\column{.49\textwidth}
-\centering
-\includegraphics[width=\linewidth,height=4.95cm,keepaspectratio]{figures/CollegeMsg_comparison.pdf}\\[-2pt]
-{\small\color{teal}\bfseries 32.8--64.4 candidati su 1\,899 nodi}
-\column{.49\textwidth}
-\centering
-\includegraphics[width=\linewidth,height=4.95cm,keepaspectratio]{figures/ia-enron-email-dynamic_comparison.pdf}\\[-2pt]
-{\small\color{teal}\bfseries 218.6--229.8 candidati su 87\,273 nodi}
-\end{columns}
-\vspace{.20cm}
-\smallnote{Esperimento sul solo filtro $C_1(v,\mu)$. Non misura il costo della verifica, la recall o il tempo della query completa. I nodi ripetuti in più finestre si contano una sola volta.}
-\end{frame}
-
-\sectslide{04}{Conclusioni e sviluppi futuri}{Contributi, limiti sperimentali e \\direzioni di ricerca}
-% 22 — Conclusioni e sviluppi futuri
-\section{Conclusioni}
-\begin{frame}[t]{Risultati principali e sviluppi futuri}
-\vspace{.02cm}
-\begin{columns}[T,onlytextwidth]
-\column{.50\textwidth}
-\centering\panel{5.84cm}{\textbf{Ampiezza fissa}\\[4pt]
-\small Indice LSH unificato + pruning + oracolo $\mathcal O$\\[4pt]
-{\color{teal}\Large\bfseries $98.2\%$}\\[2pt]\scriptsize finestre scartate su Enron\\[8pt]
-{\color{teal}\Large\bfseries $8431\times$}\\[2pt]\scriptsize speedup di query vs BF}
-\column{.48\textwidth}
-\centering\panel{5.75cm}{\textbf{Ampiezza variabile}\\[4pt]
-\small Rettangoli + Range Tree geometrici\\[4pt]
-{\color{teal}\Large\bfseries $O(T)$}\\[2pt]\scriptsize gruppi di intervalli per nodo\\[8pt]
-\small Filtro selettivo sui dati sperimentati, da completare con la verifica.}
-\end{columns}
-\vspace{.01cm}
-\centering
-\panel{12.6cm}{\textbf{Prossimi passi}\\[4pt]\small Completare la variante 2,\\ studiare altre definizioni di Neighborhood Search.}
-\end{frame}
-
-% 23 — Ringraziamenti
-{\setbeamertemplate{footline}{}\begin{frame}[plain]
-\begin{tikzpicture}[remember picture,overlay]
-  \fill[ink](current page.south west)rectangle(current page.north east);
-  \fill[teal!39!ink] ([xshift=9.0cm]current page.south west) circle (4.6cm);
-  \foreach \x/\y in {9.8/3.6,11.1/4.9,12.85/4.3,13.3/2.5,10.4/1.6}{\fill[white!75](\x,\y)circle(2.7pt);}
-  \foreach \xa/\ya/\xb/\yb in {9.8/3.6/11.1/4.9,11.1/4.9/12.85/4.3,12.85/4.3/13.3/2.5,13.3/2.5/10.4/1.6,10.4/1.6/9.8/3.6}{\draw[white!45,thick](\xa,\ya)--(\xb,\yb);}
-  \node[anchor=south west,inner sep=4pt] at ([xshift=-.13cm,yshift=-.38cm]current page.south west)
-    {\includegraphics[width=4.7cm]{figures/TorVergataLogo_no-sfondo.png}};
-\end{tikzpicture}
-\vspace{2.2cm}
-{\color{white}\fontsize{37}{45}\selectfont\bfseries Grazie per l'attenzione!}\par\vspace{.42cm}
-{\color{bright}\Large Franco Salvucci}\par\vspace{.19cm}
-{\color{white!80}\small Il Problema del Neighborhood Search su Grafi Temporali}
-\end{frame}}
 
 \end{document}

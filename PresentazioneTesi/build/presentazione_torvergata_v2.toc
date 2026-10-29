@@ -1,6 +1,7 @@
 \babel@toc {italian}{}\relax 
 \beamer@sectionintoc {1}{Contesto e problemi}{2}{0}{1}
-\beamer@sectionintoc {2}{Variante 1: soluzione tecnica}{16}{0}{2}
-\beamer@sectionintoc {3}{Variante 2: filtro geometrico}{34}{0}{3}
-\beamer@sectionintoc {4}{Conclusioni e sviluppi futuri}{41}{0}{4}
-\beamer@sectionintoc {5}{Conclusioni}{42}{0}{5}
+\beamer@sectionintoc {2}{Contributi della tesi}{13}{0}{2}
+\beamer@sectionintoc {3}{Variante 1: soluzione tecnica}{17}{0}{3}
+\beamer@sectionintoc {4}{Variante 2: filtro geometrico}{30}{0}{4}
+\beamer@sectionintoc {5}{Conclusioni e sviluppi futuri}{32}{0}{5}
+\beamer@sectionintoc {6}{Conclusioni}{33}{0}{6}

@@ -1,0 +1,4 @@
+dataset,algorithm,avg_query_time_us,memory_mb,build_time_ms
+CollegeMsg,MiaSoluzione,12594.4,4014.81,14920
+CollegeMsg,MiaSoluzione_NoWv,16387.3,4014.78,17784.1
+CollegeMsg,Alternativa,26634.2,3503.78,15908.3

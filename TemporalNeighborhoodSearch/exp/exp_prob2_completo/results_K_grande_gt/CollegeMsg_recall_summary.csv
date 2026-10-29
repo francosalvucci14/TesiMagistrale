@@ -1,0 +1,2 @@
+dataset,mu,tau,k,b,r,queries,groundtruth_pairs,mia_soluzione_pairs,alternativa_pairs,mia_false_negatives,alternativa_false_negatives,mia_recall_pairs_pct,alternativa_recall_pairs_pct,groundtruth_positive_queries,mia_positive_queries,alternativa_positive_queries,mia_recall_query_pct,alternativa_recall_query_pct,groundtruth_avg_enumeration_us
+CollegeMsg,3988,0.35,256,32,8,1899,18297412,9813304,9813304,8484108,8484108,53.632197,53.632197,1575,1216,1216,77.206349,77.206349,3.00784e+06
